@@ -99,7 +99,7 @@
         <h2>How it works</h2>
         <ol class="steps">
           <li><span class="step-num">1</span><h3>Pick your fruits</h3><p>Browse imported fruits and add them to your cart.</p></li>
-          <li><span class="step-num">2</span><h3>Place your order</h3><p>Share your delivery details at checkout.</p></li>
+          <li><span class="step-num">2</span><h3>Place your order</h3><p>Share your delivery details and location at checkout.</p></li>
           <li><span class="step-num">3</span><h3>We confirm</h3><p>Our team confirms availability and delivery slot.</p></li>
           <li><span class="step-num">4</span><h3>Delivered fresh</h3><p>Packed carefully and delivered chilled to your door.</p></li>
         </ol>
@@ -144,6 +144,16 @@
         <label>Full name<input name="name" required autocomplete="name"></label>
         <label>Phone<input name="phone" type="tel" required autocomplete="tel"></label>
         <label>Address<textarea name="address" rows="3" required autocomplete="street-address"></textarea></label>
+        <div class="location" data-location>
+          <div class="location-head">
+            <span>Delivery location</span>
+            <button class="btn btn-ghost btn-sm" type="button" data-locate>📍 Use my current location</button>
+          </div>
+          <p class="location-status muted small" data-location-status role="status">Share your precise location so our driver can find you easily.</p>
+          <input type="hidden" name="latitude">
+          <input type="hidden" name="longitude">
+          <input type="hidden" name="locationAccuracy">
+        </div>
         <p class="form-error" data-form-error hidden></p>
       </form>
 

@@ -254,6 +254,61 @@
     }
   }
 
+  /* ---------- Location ---------- */
+
+  function setLocationStatus(html, state) {
+    const el = $("[data-location-status]");
+    el.innerHTML = html;
+    el.dataset.state = state || "";
+  }
+
+  function clearLocation() {
+    const form = $("[data-checkout]");
+    ["latitude", "longitude", "locationAccuracy"].forEach((n) => (form.elements[n].value = ""));
+    $("[data-locate]").textContent = "📍 Use my current location";
+    setLocationStatus("Share your precise location so our driver can find you easily.");
+  }
+
+  // Asks the browser for the customer's precise position. The browser shows
+  // its own permission prompt; the address field stays the fallback.
+  function requestLocation() {
+    if (!("geolocation" in navigator)) {
+      setLocationStatus("Location isn't available in this browser. Please enter your address above.", "error");
+      return;
+    }
+    const btn = $("[data-locate]");
+    btn.disabled = true;
+    setLocationStatus("Getting your precise location…", "pending");
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        const form = $("[data-checkout]");
+        form.elements.latitude.value = latitude.toFixed(6);
+        form.elements.longitude.value = longitude.toFixed(6);
+        form.elements.locationAccuracy.value = Math.round(accuracy);
+        const mapUrl = "https://www.google.com/maps?q=" + latitude.toFixed(6) + "," + longitude.toFixed(6);
+        setLocationStatus(
+          `✅ Location captured (accurate to about ${Math.round(accuracy)} m). ` +
+          `<a href="${mapUrl}" target="_blank" rel="noopener">View on map</a>`,
+          "ok"
+        );
+        btn.textContent = "📍 Update location";
+        btn.disabled = false;
+      },
+      (err) => {
+        const messages = {
+          1: "Location permission was denied. You can allow it in your browser settings, or just enter your address above.",
+          2: "We couldn't determine your location. Please try again or enter your address above.",
+          3: "Getting your location took too long. Please try again.",
+        };
+        setLocationStatus(messages[err.code] || messages[2], "error");
+        btn.disabled = false;
+      },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    );
+  }
+
   /* ---------- Checkout ---------- */
 
   function handleCheckout() {
@@ -263,6 +318,7 @@
 
     if (form.hidden) {
       form.hidden = false;
+      if (!form.elements.latitude.value) requestLocation();
       btn.textContent = "Place order";
       $("input", form).focus();
       return;
@@ -295,6 +351,7 @@
 
     error.hidden = true;
     form.reset();
+    clearLocation();
     form.hidden = true;
     btn.textContent = "Checkout";
     cart = {};
@@ -334,6 +391,8 @@
         setQty(d.remove, 0);
       } else if ("cartClose" in d) {
         closeCart();
+      } else if ("locate" in d) {
+        requestLocation();
       } else if ("checkoutBtn" in d) {
         handleCheckout();
       } else if ("clearCart" in d) {

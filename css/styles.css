@@ -251,6 +251,12 @@ p { margin: 0 0 .5em; }
   font: inherit; color: var(--ink); background: var(--bg); resize: vertical;
 }
 .checkout input:focus, .checkout textarea:focus { outline: none; border-color: var(--primary); }
+.btn-sm { padding: .45em .9em; font-size: .82rem; }
+.location { display: grid; gap: 6px; padding: 12px; border: 1px dashed var(--line); border-radius: 12px; background: var(--bg); }
+.location-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .88rem; font-weight: 500; }
+.location-status { margin: 0; }
+.location-status[data-state="ok"] { color: var(--primary); }
+.location-status[data-state="error"] { color: var(--danger); }
 .form-error { color: var(--danger); font-size: .88rem; margin: 0; }
 .cart-foot { padding: 16px 20px 20px; border-top: 1px solid var(--line); background: var(--bg); display: grid; gap: 8px; }
 .cart-foot .moq-note { text-align: center; }

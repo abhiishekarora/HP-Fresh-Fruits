@@ -8,6 +8,8 @@ folder on any static host (GitHub Pages, Netlify, etc.).
 - Product grid with country-of-origin badges, category chips, country filter and search
 - **Add to Cart** button under every product, switching to a quantity stepper once added
 - Slide-out cart: change quantities, remove items, subtotal, clear cart, checkout form
+- Checkout asks for the customer's precise current location (browser GPS, high accuracy) and
+  attaches the coordinates and a map link to the order; the typed address remains the fallback
 - Cart is saved in the browser (`localStorage`), so it survives a page reload
 - "Origins" section listing every source country; click one to filter the shop
 - Responsive layout for phones and desktops
@@ -33,4 +35,7 @@ for search engines.
 ## Orders
 There is no backend yet. Checkout validates the delivery details, shows a
 confirmation and logs the order to the browser console. Connect it to an order API,
-email or WhatsApp in `handleCheckout()` in `js/app.js`.
+email or WhatsApp in `handleCheckout()` in `js/app.js`. The order includes `latitude`,
+`longitude` and `locationAccuracy` (metres) when the customer shared their location.
+
+Browsers only allow location access on `https://` sites (or `localhost`).
