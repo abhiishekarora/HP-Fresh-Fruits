@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HP Fresh Fruits — Exotic Imported Fruits</title>
+  <meta name="description" content="Order exotic, imported fruits from around the world.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#" class="logo" aria-label="Home">
+        <span class="logo-mark" aria-hidden="true">🍃</span>
+        <span class="logo-text" data-brand-name>HP Fresh Fruits</span>
+      </a>
+      <nav class="main-nav" aria-label="Main">
+        <a href="#shop">Shop</a>
+        <a href="#origins">Origins</a>
+        <a href="#how">How it works</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <button class="cart-toggle" type="button" aria-controls="cart" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6.2"/><circle cx="10" cy="20" r="1.4" fill="currentColor"/><circle cx="17" cy="20" r="1.4" fill="currentColor"/></svg>
+        <span>Cart</span>
+        <span class="cart-count" data-cart-count>0</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow">Imported · Hand-picked · Delivered fresh</p>
+          <h1>The world's finest fruits, <em>at your door.</em></h1>
+          <p class="hero-sub" data-brand-tagline>Exotic fruits, imported fresh from around the world</p>
+          <div class="hero-actions">
+            <a href="#shop" class="btn btn-primary">Shop fruits</a>
+            <a href="#origins" class="btn btn-ghost">Explore origins</a>
+          </div>
+          <p class="moq-note" data-moq-note></p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <span class="bubble b1">🥭</span>
+          <span class="bubble b2">🥝</span>
+          <span class="bubble b3">🍇</span>
+          <span class="bubble b4"><img src="images/dragon-fruit.svg" alt=""></span>
+          <span class="bubble b5">🫐</span>
+          <span class="bubble b6">🍒</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shop -->
+    <section id="shop" class="section">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Shop exotic fruits</h2>
+            <p class="muted">Sourced directly from growers across the globe.</p>
+          </div>
+          <div class="filters">
+            <label class="search">
+              <span class="visually-hidden">Search fruits</span>
+              <input type="search" placeholder="Search fruits…" data-search>
+            </label>
+            <label>
+              <span class="visually-hidden">Filter by country</span>
+              <select data-origin-filter>
+                <option value="">All countries</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="chips" data-category-chips role="group" aria-label="Filter by category"></div>
+        <div class="product-grid" data-product-grid></div>
+        <p class="empty-state" data-empty hidden>No fruits match your search.</p>
+      </div>
+    </section>
+
+    <!-- Origins -->
+    <section id="origins" class="section section-tint">
+      <div class="container">
+        <h2>Where our fruits come from</h2>
+        <p class="muted">Every fruit travels from a trusted grower to you under controlled cold-chain conditions.</p>
+        <ul class="origin-list" data-origin-list></ul>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how" class="section">
+      <div class="container">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li><span class="step-num">1</span><h3>Pick your fruits</h3><p>Browse imported fruits and add them to your cart.</p></li>
+          <li><span class="step-num">2</span><h3>Place your order</h3><p>Share your delivery details at checkout.</p></li>
+          <li><span class="step-num">3</span><h3>We confirm</h3><p>Our team confirms availability and delivery slot.</p></li>
+          <li><span class="step-num">4</span><h3>Delivered fresh</h3><p>Packed carefully and delivered chilled to your door.</p></li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer id="contact" class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <p class="logo-text" data-brand-name>HP Fresh Fruits</p>
+        <p class="muted" data-brand-tagline>Exotic fruits, imported fresh from around the world</p>
+      </div>
+      <div>
+        <p><strong>Contact</strong></p>
+        <p><a data-brand-email href="#">orders@example.com</a></p>
+        <p><a data-brand-phone href="#">+91 00000 00000</a></p>
+      </div>
+      <p class="muted small">© <span data-year></span> <span data-brand-name>HP Fresh Fruits</span>. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Cart drawer -->
+  <div class="overlay" data-overlay hidden></div>
+  <aside id="cart" class="cart" aria-label="Shopping cart" aria-hidden="true">
+    <div class="cart-head">
+      <h2>Your cart</h2>
+      <button class="icon-btn" type="button" data-cart-close aria-label="Close cart">✕</button>
+    </div>
+
+    <div class="cart-body">
+      <ul class="cart-items" data-cart-items></ul>
+      <div class="cart-empty" data-cart-empty>
+        <p class="cart-empty-emoji" aria-hidden="true">🧺</p>
+        <p>Your cart is empty.</p>
+        <button class="btn btn-ghost" type="button" data-cart-close>Continue shopping</button>
+      </div>
+
+      <form class="checkout" data-checkout hidden novalidate>
+        <h3>Delivery details</h3>
+        <label>Full name<input name="name" required autocomplete="name"></label>
+        <label>Phone<input name="phone" type="tel" required autocomplete="tel"></label>
+        <label>Address<textarea name="address" rows="3" required autocomplete="street-address"></textarea></label>
+        <p class="form-error" data-form-error hidden></p>
+      </form>
+
+      <div class="order-success" data-success hidden>
+        <p class="cart-empty-emoji" aria-hidden="true">✅</p>
+        <h3>Order received!</h3>
+        <p>Thank you. We'll contact you shortly to confirm your order and delivery slot.</p>
+        <button class="btn btn-primary" type="button" data-cart-close>Done</button>
+      </div>
+    </div>
+
+    <div class="cart-foot" data-cart-foot hidden>
+      <p class="moq-note" data-moq-cart></p>
+      <div class="cart-total">
+        <span>Subtotal</span>
+        <strong data-cart-subtotal>₹0</strong>
+      </div>
+      <p class="muted small">Delivery charges confirmed with your order.</p>
+      <button class="btn btn-primary btn-block" type="button" data-checkout-btn>Checkout</button>
+      <button class="btn btn-link" type="button" data-clear-cart>Clear cart</button>
+    </div>
+  </aside>
+
+  <div class="toast" data-toast role="status" aria-live="polite"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
