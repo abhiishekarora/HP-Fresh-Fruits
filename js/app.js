@@ -43,7 +43,7 @@
       el.href = "tel:" + brand.phone.replace(/\s+/g, "");
     });
     $$("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
-    document.title = brand.name + " — Exotic Imported Fruits";
+    document.title = brand.name + " | Exotic Imported Fruits";
   }
 
   /* ---------- Minimum order ---------- */
@@ -86,7 +86,7 @@
     try {
       localStorage.setItem(CART_KEY, JSON.stringify(cart));
     } catch (e) {
-      /* storage unavailable — cart still works for this visit */
+      /* storage unavailable, cart still works for this visit */
     }
   }
 

@@ -9,7 +9,7 @@ folder on any static host (GitHub Pages, Netlify, etc.).
 - **Add to Cart** button under every product, switching to a quantity stepper once added
 - Slide-out cart: change quantities, remove items, subtotal, clear cart, checkout form
 - Cart is saved in the browser (`localStorage`), so it survives a page reload
-- "Origins" section listing every source country — click one to filter the shop
+- "Origins" section listing every source country; click one to filter the shop
 - Responsive layout for phones and desktops
 
 ## Customising

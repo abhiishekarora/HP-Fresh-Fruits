@@ -1,6 +1,6 @@
 /*
  * Site-wide settings. The business is due to be rebranded, so every place
- * the brand appears on the site reads from here — change it once and the
+ * the brand appears on the site reads from here. Change it once and the
  * whole site updates.
  */
 window.SITE_CONFIG = {
