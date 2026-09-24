@@ -39,3 +39,7 @@ email or WhatsApp in `handleCheckout()` in `js/app.js`. The order includes `lati
 `longitude` and `locationAccuracy` (metres) when the customer shared their location.
 
 Browsers only allow location access on `https://` sites (or `localhost`).
+
+## License
+Proprietary. Copyright (c) 2026 HP Fresh Fruits. All rights reserved.
+No use, copying or distribution without written permission. See [LICENSE](LICENSE).
