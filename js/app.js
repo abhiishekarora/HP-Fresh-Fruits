@@ -107,10 +107,17 @@
   const filters = { search: "", origin: "", category: "" };
 
   // Illustrations (SVG) are shown contained; photos fill the card.
-  function mediaHtml(p, alt) {
+  function artHtml(p, alt) {
     if (!p.image) return `<span class="product-emoji" aria-hidden="true">${p.emoji}</span>`;
     const cls = /\.svg$/i.test(p.image) ? "illustration" : "photo";
     return `<img class="${cls}" src="${escapeHtml(p.image)}" alt="${escapeHtml(alt)}" loading="lazy">`;
+  }
+
+  // A real `photo` is shown when the file exists; until it is uploaded the
+  // emoji / illustration is swapped back in (see the error listener below).
+  function mediaHtml(p, alt) {
+    if (!p.photo) return artHtml(p, alt);
+    return `<img class="photo" src="${escapeHtml(p.photo)}" alt="${escapeHtml(alt)}" loading="lazy" data-fallback="${escapeHtml(artHtml(p, alt))}">`;
   }
 
   function productCard(p) {
@@ -413,6 +420,12 @@
         openCart();
       }
     });
+
+    // Image errors don't bubble, so listen in the capture phase.
+    document.addEventListener("error", (e) => {
+      const img = e.target;
+      if (img instanceof HTMLImageElement && img.dataset.fallback) img.outerHTML = img.dataset.fallback;
+    }, true);
 
     $("[data-overlay]").addEventListener("click", closeCart);
     document.addEventListener("keydown", (e) => {

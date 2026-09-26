@@ -22,7 +22,7 @@ folder on any static host (GitHub Pages, Netlify, etc.).
 | Minimum order quantity (currently "to be announced") | `js/config.js` → `minOrder.value` / `unit` |
 | Currency | `js/config.js` → `currency` |
 | Products, prices, origins, descriptions | `js/products.js` |
-| Product photos | set `image: "images/your-photo.jpg"` on a product |
+| Product photos | add `images/photos/<product-id>.jpg` (file names listed in `images/photos/README.md`) |
 | Colours and fonts | CSS variables at the top of `css/styles.css` |
 
 When `minOrder.value` is set (e.g. `5` items, or `unit: "amount"` for a minimum cart
