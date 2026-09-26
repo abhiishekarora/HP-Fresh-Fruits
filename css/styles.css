@@ -199,6 +199,14 @@ p { margin: 0 0 .5em; }
   padding: .25em .7em; border-radius: 999px; font-size: .78rem; font-weight: 600;
   background: rgba(255,255,255,.9); color: var(--ink);
 }
+.stock-badge {
+  position: absolute; right: 12px; top: 12px;
+  padding: .25em .7em; border-radius: 999px; font-size: .75rem; font-weight: 700;
+  background: var(--accent); color: #fff;
+}
+.stock-badge.stock-new { background: var(--primary); }
+.stock-badge.stock-sold_out { background: var(--ink); }
+.product-card.sold-out .product-media > img, .product-card.sold-out .product-media > .product-emoji { filter: grayscale(.8); opacity: .7; }
 .product-info { padding: 16px 18px 8px; flex: 1; }
 .product-category { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 2px; }
 .product-info h3 { font-size: 1.2rem; margin-bottom: .25em; }

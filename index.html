@@ -37,8 +37,8 @@
     <section class="hero">
       <div class="container hero-inner">
         <div class="hero-copy">
-          <p class="eyebrow">Imported · Hand-picked · Delivered fresh</p>
-          <h1>The world's finest fruits, <em>at your door.</em></h1>
+          <p class="eyebrow" data-hero-eyebrow>Imported · Hand-picked · Delivered fresh</p>
+          <h1><span data-hero-title>The world's finest fruits, </span><em data-hero-highlight>at your door.</em></h1>
           <p class="hero-sub" data-brand-tagline>Exotic fruits, imported fresh from around the world</p>
           <div class="hero-actions">
             <a href="#shop" class="btn btn-primary">Shop fruits</a>
@@ -181,7 +181,7 @@
         <span>Subtotal</span>
         <strong data-cart-subtotal>₹0</strong>
       </div>
-      <p class="muted small">Delivery charges confirmed with your order.</p>
+      <p class="muted small" data-delivery-note>Delivery charges confirmed with your order.</p>
       <button class="btn btn-primary btn-block" type="button" data-checkout-btn>Checkout</button>
       <button class="btn btn-link" type="button" data-clear-cart>Clear cart</button>
     </div>
@@ -189,8 +189,6 @@
 
   <div class="toast" data-toast role="status" aria-live="polite"></div>
 
-  <script src="js/config.js"></script>
-  <script src="js/products.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

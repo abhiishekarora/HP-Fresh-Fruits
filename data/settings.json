@@ -1,0 +1,26 @@
+{
+  "brand": {
+    "name": "HP Fresh Fruits",
+    "tagline": "Exotic fruits, imported fresh from around the world",
+    "email": "orders@example.com",
+    "phone": "+91 00000 00000"
+  },
+  "hero": {
+    "eyebrow": "Imported · Hand-picked · Delivered fresh",
+    "title": "The world's finest fruits,",
+    "titleHighlight": "at your door."
+  },
+  "orders": {
+    "whatsappNumber": "",
+    "deliveryNote": "Delivery charges confirmed with your order."
+  },
+  "minOrder": {
+    "value": null,
+    "unit": "items",
+    "pendingMessage": "Minimum order quantity will be announced soon."
+  },
+  "currency": {
+    "code": "INR",
+    "locale": "en-IN"
+  }
+}

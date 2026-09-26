@@ -1,0 +1,116 @@
+# Admin panel (Decap CMS) settings.
+# Every save commits the change to GitHub, and the host (Netlify) republishes
+# the site automatically a few seconds later.
+backend:
+  name: github
+  repo: abhiishekarora/HP-Fresh-Fruits
+  # The branch the live site is published from. Change this if you later
+  # publish from a different branch (e.g. main).
+  branch: claude/hp-fresh-fruits-website-wxemvo
+  commit_messages:
+    update: "Admin: update {{slug}}"
+    uploadMedia: "Admin: upload {{path}}"
+    deleteMedia: "Admin: delete {{path}}"
+
+# Lets the panel run against local files while developing (npx decap-server).
+# Has no effect on the live site.
+local_backend: true
+
+media_folder: images/photos
+public_folder: images/photos
+
+collections:
+  - name: shop
+    label: Products
+    editor: { preview: false }
+    files:
+      - name: products
+        label: Products & prices
+        file: data/products.json
+        fields:
+          - name: products
+            label: Products
+            label_singular: Product
+            widget: list
+            summary: "{{fields.name}}  ·  ₹{{fields.price}}  ·  {{fields.unit}}"
+            fields:
+              - { name: name, label: Name, widget: string }
+              - name: id
+                label: Product code
+                widget: string
+                hint: "Short unique code, lowercase with dashes, e.g. dragon-fruit. Don't change it once customers have ordered."
+              - { name: visible, label: Show on website, widget: boolean, default: true }
+              - name: stock
+                label: Stock
+                widget: select
+                default: in_stock
+                options:
+                  - { label: In stock, value: in_stock }
+                  - { label: Limited stock, value: limited }
+                  - { label: New arrival, value: new }
+                  - { label: Sold out (can't be ordered), value: sold_out }
+              - { name: featured, label: Show in homepage slider, widget: boolean, default: false, hint: "Needs a photo." }
+              - { name: price, label: Price (₹), widget: number, value_type: int, min: 0 }
+              - { name: unit, label: Pack size / unit, widget: string, hint: "e.g. per piece, 500 g, pack of 6" }
+              - { name: category, label: Category, widget: string, hint: "e.g. Tropical, Citrus, Orchard. New categories appear as filter buttons automatically." }
+              - { name: origin, label: Country of origin, widget: string, hint: "e.g. Thailand. Common countries get their flag automatically." }
+              - { name: description, label: Description, widget: text }
+              - { name: photo, label: Photo, widget: image, required: false, choose_url: true, hint: "Landscape photos (4:3) fit the cards best." }
+              - { name: photoCreditTitle, label: Photo credit (name), widget: string, required: false, hint: "Only needed for photos that require credit, e.g. from Wikimedia." }
+              - { name: photoCreditUrl, label: Photo credit (link), widget: string, required: false }
+              - { name: emoji, label: Emoji (shown if there's no photo), widget: string, required: false }
+              - { name: tint, label: Card background colour, widget: color, required: false }
+              - { name: illustration, label: Illustration, widget: hidden, required: false }
+
+  - name: settings
+    label: Settings
+    editor: { preview: false }
+    files:
+      - name: shop-settings
+        label: Shop settings
+        file: data/settings.json
+        fields:
+          - name: brand
+            label: Business details
+            widget: object
+            fields:
+              - { name: name, label: Business name, widget: string }
+              - { name: tagline, label: Tagline, widget: string }
+              - { name: email, label: Email, widget: string }
+              - { name: phone, label: Phone, widget: string }
+          - name: hero
+            label: Homepage heading
+            widget: object
+            fields:
+              - { name: eyebrow, label: Small text above the heading, widget: string }
+              - { name: title, label: Heading, widget: string }
+              - { name: titleHighlight, label: Heading (green part), widget: string, required: false }
+          - name: orders
+            label: Orders
+            widget: object
+            fields:
+              - name: whatsappNumber
+                label: WhatsApp number for orders
+                widget: string
+                required: false
+                hint: "With country code, digits only, e.g. 919876543210. Leave empty to turn WhatsApp ordering off."
+              - { name: deliveryNote, label: Delivery note in the cart, widget: string }
+          - name: minOrder
+            label: Minimum order
+            widget: object
+            fields:
+              - { name: value, label: Minimum, widget: number, value_type: int, min: 0, required: false, hint: "Leave empty for no minimum." }
+              - name: unit
+                label: Minimum is counted in
+                widget: select
+                options:
+                  - { label: Number of items, value: items }
+                  - { label: Order value (₹), value: amount }
+              - { name: pendingMessage, label: Message while there is no minimum, widget: string }
+          - name: currency
+            label: Currency
+            widget: object
+            collapsed: true
+            fields:
+              - { name: code, label: Currency code, widget: string, hint: "e.g. INR" }
+              - { name: locale, label: Number format, widget: string, hint: "e.g. en-IN" }

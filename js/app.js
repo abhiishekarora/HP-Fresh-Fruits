@@ -1,20 +1,71 @@
-(function () {
+(async function () {
   "use strict";
 
-  const config = window.SITE_CONFIG;
-  const products = window.PRODUCTS;
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  /* ---------- Data ---------- */
+
+  // Products and settings live in data/*.json, which the admin panel
+  // (/admin) edits. "no-cache" makes sure a fresh edit shows up straight away.
+  async function loadJson(path) {
+    const res = await fetch(path, { cache: "no-cache" });
+    if (!res.ok) throw new Error(path + ": " + res.status);
+    return res.json();
+  }
+
+  let config, catalogue;
+  try {
+    [config, catalogue] = await Promise.all([loadJson("data/settings.json"), loadJson("data/products.json")]);
+  } catch (err) {
+    console.error("Could not load shop data", err);
+    $("[data-product-grid]").innerHTML =
+      '<p class="empty-state">Sorry, the shop could not be loaded. Please refresh the page.</p>';
+    return;
+  }
+
+  // The admin panel saves an empty number field as "" rather than null.
+  const moqValue = parseInt(config.minOrder && config.minOrder.value, 10);
+  config.minOrder = { unit: "items", pendingMessage: "", ...config.minOrder, value: moqValue > 0 ? moqValue : null };
+  config.orders = config.orders || {};
+
+  const STOCK_LABELS = { limited: "Limited stock", new: "New arrival", sold_out: "Sold out" };
+
+  // Turn an admin-edited product record into the shape the page uses.
+  function normalizeProduct(p) {
+    return {
+      ...p,
+      id: String(p.id || p.name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      price: Number(p.price) || 0,
+      emoji: p.emoji || "🧺",
+      image: p.illustration || "",
+      tint: p.tint || "#f6f8ef",
+      category: p.category || "Other",
+      origin: p.origin || "",
+      unit: p.unit || "",
+      description: p.description || "",
+      photo: p.photo ? { src: p.photo, source: p.photoCreditUrl || "", title: p.photoCreditTitle || "" } : null,
+      soldOut: p.stock === "sold_out",
+    };
+  }
+
+  const products = (catalogue.products || [])
+    .filter((p) => p.visible !== false && p.name)
+    .map(normalizeProduct);
   const productById = new Map(products.map((p) => [p.id, p]));
   const CART_KEY = "fruit-shop-cart";
 
   const FLAGS = {
-    "Australia": "🇦🇺", "China": "🇨🇳", "Egypt": "🇪🇬", "Japan": "🇯🇵",
-    "Kenya": "🇰🇪", "Malaysia": "🇲🇾", "Mexico": "🇲🇽", "New Zealand": "🇳🇿",
-    "Peru": "🇵🇪", "South Africa": "🇿🇦", "South Korea": "🇰🇷", "Thailand": "🇹🇭",
-    "USA": "🇺🇸", "Vietnam": "🇻🇳",
+    "Argentina": "🇦🇷", "Australia": "🇦🇺", "Belgium": "🇧🇪", "Bhutan": "🇧🇹", "Brazil": "🇧🇷",
+    "Canada": "🇨🇦", "Chile": "🇨🇱", "China": "🇨🇳", "Colombia": "🇨🇴", "Costa Rica": "🇨🇷",
+    "Ecuador": "🇪🇨", "Egypt": "🇪🇬", "France": "🇫🇷", "Greece": "🇬🇷", "India": "🇮🇳",
+    "Indonesia": "🇮🇩", "Iran": "🇮🇷", "Israel": "🇮🇱", "Italy": "🇮🇹", "Japan": "🇯🇵",
+    "Kenya": "🇰🇪", "Malaysia": "🇲🇾", "Mexico": "🇲🇽", "Morocco": "🇲🇦", "Nepal": "🇳🇵",
+    "Netherlands": "🇳🇱", "New Zealand": "🇳🇿", "Pakistan": "🇵🇰", "Peru": "🇵🇪",
+    "Philippines": "🇵🇭", "Poland": "🇵🇱", "Portugal": "🇵🇹", "South Africa": "🇿🇦",
+    "South Korea": "🇰🇷", "Spain": "🇪🇸", "Sri Lanka": "🇱🇰", "Taiwan": "🇹🇼", "Thailand": "🇹🇭",
+    "Turkey": "🇹🇷", "UAE": "🇦🇪", "UK": "🇬🇧", "USA": "🇺🇸", "Vietnam": "🇻🇳",
   };
-
-  const $ = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   const money = new Intl.NumberFormat(config.currency.locale, {
     style: "currency",
@@ -43,6 +94,11 @@
       el.href = "tel:" + brand.phone.replace(/\s+/g, "");
     });
     $$("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
+    const hero = config.hero || {};
+    if (hero.eyebrow) $("[data-hero-eyebrow]").textContent = hero.eyebrow;
+    if (hero.title) $("[data-hero-title]").textContent = hero.title + " ";
+    $("[data-hero-highlight]").textContent = hero.titleHighlight || "";
+    if (config.orders && config.orders.deliveryNote) $("[data-delivery-note]").textContent = config.orders.deliveryNote;
     document.title = brand.name + " | Exotic Imported Fruits";
   }
 
@@ -75,7 +131,7 @@
       const saved = JSON.parse(localStorage.getItem(CART_KEY) || "{}");
       // Drop anything that is no longer in the catalogue.
       return Object.fromEntries(
-        Object.entries(saved).filter(([id, qty]) => productById.has(id) && qty > 0)
+        Object.entries(saved).filter(([id, qty]) => productById.has(id) && !productById.get(id).soldOut && qty > 0)
       );
     } catch (e) {
       return {};
@@ -108,7 +164,7 @@
 
   // Illustrations (SVG) are shown contained; photos fill the card.
   function artHtml(p, alt) {
-    if (!p.image) return `<span class="product-emoji" aria-hidden="true">${p.emoji}</span>`;
+    if (!p.image) return `<span class="product-emoji" aria-hidden="true">${escapeHtml(p.emoji)}</span>`;
     const cls = /\.svg$/i.test(p.image) ? "illustration" : "photo";
     return `<img class="${cls}" src="${escapeHtml(p.image)}" alt="${escapeHtml(alt)}" loading="lazy">`;
   }
@@ -135,10 +191,11 @@
   function productCard(p) {
     const media = mediaHtml(p, p.name);
     return `
-      <article class="product-card" data-id="${p.id}">
-        <div class="product-media" style="background:${p.tint}">
+      <article class="product-card${p.soldOut ? " sold-out" : ""}" data-id="${escapeHtml(p.id)}">
+        <div class="product-media" style="background:${escapeHtml(p.tint)}">
           ${media}
           <span class="origin-badge">${FLAGS[p.origin] || "🌍"} ${escapeHtml(p.origin)}</span>
+          ${STOCK_LABELS[p.stock] ? `<span class="stock-badge stock-${escapeHtml(p.stock)}">${STOCK_LABELS[p.stock]}</span>` : ""}
         </div>
         <div class="product-info">
           <p class="product-category">${escapeHtml(p.category)}</p>
@@ -151,9 +208,12 @@
   }
 
   function actionHtml(id) {
+    if (productById.get(id).soldOut) {
+      return `<button class="btn btn-primary btn-block" type="button" disabled>Sold out</button>`;
+    }
     const qty = cart[id] || 0;
     if (!qty) {
-      return `<button class="btn btn-primary btn-block" type="button" data-add="${id}">Add to Cart</button>`;
+      return `<button class="btn btn-primary btn-block" type="button" data-add="${escapeHtml(id)}">Add to Cart</button>`;
     }
     return `
       <div class="qty-control" role="group" aria-label="Quantity">
@@ -221,7 +281,7 @@
         const p = productById.get(id);
         return `
           <li class="cart-item">
-            <span class="cart-thumb" style="background:${p.tint}" aria-hidden="true">${mediaHtml(p, "")}</span>
+            <span class="cart-thumb" style="background:${escapeHtml(p.tint)}" aria-hidden="true">${mediaHtml(p, "")}</span>
             <div class="cart-item-info">
               <p class="cart-item-name">${escapeHtml(p.name)}</p>
               <p class="muted small">${FLAGS[p.origin] || ""} ${escapeHtml(p.origin)} · ${money.format(p.price)} / ${escapeHtml(p.unit)}</p>
@@ -493,8 +553,8 @@
   /* ---------- Hero carousel ---------- */
 
   function initCarousel() {
-    // Only photos stored on the site, so every slide is guaranteed to load.
-    const slides = products.filter((p) => /^images\//.test(photoSrc(p) || ""));
+    // Products ticked "Show in homepage slider" in the admin panel.
+    const slides = products.filter((p) => p.featured && photoSrc(p));
     const root = $("[data-carousel]");
     if (!slides.length) { root.hidden = true; return; }
 

@@ -1,8 +1,9 @@
 # HP Fresh Fruits
 
 A lightweight, light-themed storefront for ordering exotic, imported fruits.
-Plain HTML/CSS/JS with no build step: open `index.html` in a browser, or host the
-folder on any static host (GitHub Pages, Netlify, etc.).
+Plain HTML/CSS/JS with no build step. Products and settings live in `data/*.json`
+(edited through the admin panel), so the site must be served over HTTP; opening
+`index.html` straight from disk won't load them. Any static host works.
 
 ## Features
 - Product grid with country-of-origin badges, category chips, country filter and search
@@ -14,23 +15,42 @@ folder on any static host (GitHub Pages, Netlify, etc.).
 - "Origins" section listing every source country; click one to filter the shop
 - Responsive layout for phones and desktops
 
-## Customising
+## Admin panel (change the shop without touching code)
+Go to `/admin` on the live site (e.g. `https://your-site.netlify.app/admin`) and log in
+with GitHub. From there you can:
 
-| What | Where |
-| --- | --- |
-| Brand name, tagline, email, phone (for the upcoming rebrand) | `js/config.js` → `brand` |
-| Minimum order quantity (currently "to be announced") | `js/config.js` → `minOrder.value` / `unit` |
-| Currency | `js/config.js` → `currency` |
-| Products, prices, origins, descriptions | `js/products.js` |
-| Product photos | `photo` on each product in `js/products.js` (Wikimedia Commons by default; see `images/photos/README.md` to use your own) |
-| Colours and fonts | CSS variables at the top of `css/styles.css` |
+- **Products:** add, remove and reorder fruits; change names, prices, pack sizes,
+  categories, countries, descriptions and photos (upload straight from your phone or
+  computer); mark them *In stock*, *Limited stock*, *New arrival* or *Sold out*; hide
+  them from the site; and choose which ones appear in the homepage slider.
+- **Settings:** business name, tagline, email, phone, homepage heading, WhatsApp
+  number for orders, delivery note, minimum order and currency.
 
-When `minOrder.value` is set (e.g. `5` items, or `unit: "amount"` for a minimum cart
-value), the cart shows how much more is needed and blocks checkout until it's met.
+Every save is stored in this repository (`data/products.json`, `data/settings.json`,
+photos in `images/photos/`), and the host republishes the site automatically, usually
+within a minute.
 
-The brand name is also hardcoded in the `<title>` and a few text fallbacks in
-`index.html`; they get replaced at load time from `config.js`, but update them too
-for search engines.
+### One-time setup (after the site is on Netlify)
+The admin panel logs in through GitHub, so it needs a GitHub "OAuth app":
+
+1. On GitHub: **Settings → Developer settings → OAuth Apps → New OAuth App**.
+   - Homepage URL: your site address, e.g. `https://your-site.netlify.app`
+   - Authorization callback URL: `https://api.netlify.com/auth/done`
+   - Click **Register**, then **Generate a new client secret**.
+2. On Netlify: **Site configuration → Access & security → OAuth → Install provider →
+   GitHub**, and paste the Client ID and Client secret.
+3. Open `https://your-site.netlify.app/admin` and click **Login with GitHub**.
+
+Only GitHub accounts that can push to this repository can save changes. To give
+someone else access, add them as a collaborator on the repository.
+
+If the site is later published from a different branch (e.g. `main`), change
+`branch:` in `admin/config.yml` to match.
+
+### Trying the admin panel on your computer
+Run `npx decap-server` in the project folder and, in a second terminal, serve the
+folder (e.g. `python3 -m http.server 8080`), then open `http://localhost:8080/admin`.
+Changes are written straight to your local files.
 
 ## Orders
 Checkout sends the order to your WhatsApp. When a customer places an order,
@@ -38,8 +58,8 @@ WhatsApp opens with the full order already written (items, quantities, total,
 name, phone, address and a map link to their location). They press send and it
 arrives on your number.
 
-Set the number in `js/config.js` → `orders.whatsappNumber`, digits only with the
-country code (e.g. `"919876543210"`). While it's empty, checkout only shows an
+Set the number in the admin panel under **Settings → Orders**, digits only with the
+country code (e.g. `919876543210`). While it's empty, checkout only shows an
 on-screen confirmation.
 
 Browsers only allow location access on `https://` sites (or `localhost`).
