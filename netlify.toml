@@ -1,0 +1,10 @@
+# Netlify hosting settings. The site is plain HTML/CSS/JS, so there is no
+# build step: Netlify serves this folder as-is.
+[build]
+  publish = "."
+
+# Photos rarely change, so let browsers cache them for a week.
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

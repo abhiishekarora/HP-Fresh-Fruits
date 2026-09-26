@@ -33,12 +33,25 @@ The brand name is also hardcoded in the `<title>` and a few text fallbacks in
 for search engines.
 
 ## Orders
-There is no backend yet. Checkout validates the delivery details, shows a
-confirmation and logs the order to the browser console. Connect it to an order API,
-email or WhatsApp in `handleCheckout()` in `js/app.js`. The order includes `latitude`,
-`longitude` and `locationAccuracy` (metres) when the customer shared their location.
+Checkout sends the order to your WhatsApp. When a customer places an order,
+WhatsApp opens with the full order already written (items, quantities, total,
+name, phone, address and a map link to their location). They press send and it
+arrives on your number.
+
+Set the number in `js/config.js` → `orders.whatsappNumber`, digits only with the
+country code (e.g. `"919876543210"`). While it's empty, checkout only shows an
+on-screen confirmation.
 
 Browsers only allow location access on `https://` sites (or `localhost`).
+
+## Going online (Netlify, free)
+1. Sign up at https://app.netlify.com with your GitHub account.
+2. **Add new site → Import an existing project → GitHub**, and pick this repository
+   (private repositories work). Choose the branch to publish.
+3. Leave the build command empty; `netlify.toml` already sets everything.
+4. Click **Deploy**. You get an `https://<name>.netlify.app` address straight away,
+   and every push to the branch updates the site automatically.
+5. Optional: **Domain management → Add a domain** to use your own web address.
 
 ## Photos
 Product photos are loaded from Wikimedia Commons under their free licences

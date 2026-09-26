@@ -13,6 +13,13 @@ window.SITE_CONFIG = {
 
   currency: { code: "INR", locale: "en-IN" },
 
+  // Orders are sent to this WhatsApp number as a ready-to-send message.
+  // Use the full international number, digits only (e.g. "919876543210"
+  // for +91 98765 43210). Leave empty to only show an on-screen confirmation.
+  orders: {
+    whatsappNumber: "",
+  },
+
   // Minimum order quantity has not been decided yet.
   // Set `value` to a number (e.g. 5) to enforce it at checkout;
   // `unit` is "items" (total units in cart) or "amount" (cart value).

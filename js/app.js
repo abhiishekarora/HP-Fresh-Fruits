@@ -330,6 +330,36 @@
 
   /* ---------- Checkout ---------- */
 
+  // Builds a wa.me link carrying the whole order as a pre-filled message,
+  // or null when no WhatsApp number is configured.
+  function whatsappOrderUrl(customer) {
+    const number = String(config.orders.whatsappNumber || "").replace(/\D/g, "");
+    if (!number) return null;
+
+    const lines = [
+      `*New order: ${config.brand.name}*`,
+      "",
+      ...Object.entries(cart).map(([id, qty]) => {
+        const p = productById.get(id);
+        return `• ${p.name} (${p.unit}) × ${qty} = ${money.format(p.price * qty)}`;
+      }),
+      "",
+      `*Subtotal: ${money.format(cartSubtotal())}*`,
+      "Delivery charges to be confirmed.",
+      "",
+      `Name: ${customer.name}`,
+      `Phone: ${customer.phone}`,
+      `Address: ${customer.address}`,
+    ];
+    if (customer.latitude && customer.longitude) {
+      lines.push(
+        `Location: https://www.google.com/maps?q=${customer.latitude},${customer.longitude}` +
+        (customer.locationAccuracy ? ` (±${customer.locationAccuracy} m)` : "")
+      );
+    }
+    return "https://wa.me/" + number + "?text=" + encodeURIComponent(lines.join("\n"));
+  }
+
   function handleCheckout() {
     const form = $("[data-checkout]");
     const btn = $("[data-checkout-btn]");
@@ -338,7 +368,7 @@
     if (form.hidden) {
       form.hidden = false;
       if (!form.elements.latitude.value) requestLocation();
-      btn.textContent = "Place order";
+      btn.textContent = config.orders.whatsappNumber ? "Place order on WhatsApp" : "Place order";
       $("input", form).focus();
       return;
     }
@@ -358,15 +388,14 @@
       return;
     }
 
-    // No backend yet: the order is only confirmed on screen.
-    // Hook an API call / WhatsApp / email integration in here.
-    const order = {
-      customer: Object.fromEntries(new FormData(form)),
-      items: Object.entries(cart).map(([id, qty]) => ({ id, qty, price: productById.get(id).price })),
-      subtotal: cartSubtotal(),
-      placedAt: new Date().toISOString(),
-    };
-    console.info("Order placed", order);
+    const customer = Object.fromEntries(new FormData(form));
+    const waUrl = whatsappOrderUrl(customer);
+    if (waUrl) window.open(waUrl, "_blank", "noopener");
+
+    const link = $("[data-whatsapp-link]");
+    $("[data-success-whatsapp]").hidden = !waUrl;
+    $("[data-success-plain]").hidden = !!waUrl;
+    if (waUrl) link.href = waUrl;
 
     error.hidden = true;
     form.reset();

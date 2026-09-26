@@ -162,8 +162,15 @@
 
       <div class="order-success" data-success hidden>
         <p class="cart-empty-emoji" aria-hidden="true">✅</p>
-        <h3>Order received!</h3>
-        <p>Thank you. We'll contact you shortly to confirm your order and delivery slot.</p>
+        <div data-success-whatsapp hidden>
+          <h3>Almost done!</h3>
+          <p>Your order is ready in WhatsApp. <strong>Press send</strong> there to place it, and we'll confirm availability and your delivery slot.</p>
+          <p><a class="btn btn-whatsapp" data-whatsapp-link href="#" target="_blank" rel="noopener">Open WhatsApp again</a></p>
+        </div>
+        <div data-success-plain>
+          <h3>Order received!</h3>
+          <p>Thank you. We'll contact you shortly to confirm your order and delivery slot.</p>
+        </div>
         <button class="btn btn-primary" type="button" data-cart-close>Done</button>
       </div>
     </div>
