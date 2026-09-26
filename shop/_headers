@@ -1,0 +1,5 @@
+# Response headers for the storefront (Cloudflare static assets).
+
+# Bundled photos rarely change, so let browsers cache them for a week.
+/images/*
+  Cache-Control: public, max-age=604800

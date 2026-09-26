@@ -6,17 +6,28 @@
 
   /* ---------- Data ---------- */
 
-  // Products and settings live in data/*.json, which the admin panel
-  // (/admin) edits. "no-cache" makes sure a fresh edit shows up straight away.
+  // Products and settings come from the shop backend (shop-api), which the
+  // admin panel updates. If the backend isn't there (e.g. a static preview),
+  // fall back to the catalogue bundled in data/*.json.
   async function loadJson(path) {
     const res = await fetch(path, { cache: "no-cache" });
     if (!res.ok) throw new Error(path + ": " + res.status);
     return res.json();
   }
 
+  async function loadCatalogue() {
+    try {
+      const data = await loadJson("api/catalog");
+      if (data && data.settings && Array.isArray(data.products)) return [data.settings, data];
+    } catch (err) {
+      console.info("Shop backend not available, using bundled data.", err.message);
+    }
+    return Promise.all([loadJson("data/settings.json"), loadJson("data/products.json")]);
+  }
+
   let config, catalogue;
   try {
-    [config, catalogue] = await Promise.all([loadJson("data/settings.json"), loadJson("data/products.json")]);
+    [config, catalogue] = await loadCatalogue();
   } catch (err) {
     console.error("Could not load shop data", err);
     $("[data-product-grid]").innerHTML =
@@ -24,7 +35,7 @@
     return;
   }
 
-  // The admin panel saves an empty number field as "" rather than null.
+  // Accept an empty minimum ("" or null) as "no minimum".
   const moqValue = parseInt(config.minOrder && config.minOrder.value, 10);
   config.minOrder = { unit: "items", pendingMessage: "", ...config.minOrder, value: moqValue > 0 ? moqValue : null };
   config.orders = config.orders || {};
@@ -553,7 +564,7 @@
   /* ---------- Hero carousel ---------- */
 
   function initCarousel() {
-    // Products ticked "Show in homepage slider" in the admin panel.
+    // Products marked "Show in homepage slider" in the admin panel.
     const slides = products.filter((p) => p.featured && photoSrc(p));
     const root = $("[data-carousel]");
     if (!slides.length) { root.hidden = true; return; }

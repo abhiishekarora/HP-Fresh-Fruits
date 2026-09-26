@@ -1,0 +1,19 @@
+// Storefront backend: serves the shop's pages (../shop) and its API.
+// Deploy from this folder with `npx wrangler deploy` (Cloudflare project root: shop-api).
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "fruit-shop",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  // Everything that isn't /api, /photos or /internal is a static file from ../shop.
+  "assets": {
+    "directory": "../shop",
+    "binding": "ASSETS"
+  },
+  // Products, settings and uploaded photos. Wrangler creates the namespace on
+  // the first deploy.
+  "kv_namespaces": [{ "binding": "SHOP_DATA" }],
+  // INTERNAL_API_KEY is a secret set in the dashboard; keep it between deploys.
+  "keep_vars": true,
+  "observability": { "enabled": true }
+}

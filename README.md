@@ -1,87 +1,121 @@
 # HP Fresh Fruits
 
-A lightweight, light-themed storefront for ordering exotic, imported fruits.
-Plain HTML/CSS/JS with no build step. Products and settings live in `data/*.json`
-(edited through the admin panel), so the site must be served over HTTP; opening
-`index.html` straight from disk won't load them. Any static host works.
+A light-themed online shop for exotic, imported fruits, with a separate admin panel.
+Both run on Cloudflare Workers (free plan), each with its own backend.
+
+## How it's organised
+
+```
+shop/        storefront pages (HTML/CSS/JS)             → yourdomain.com
+shop-api/    storefront backend (Cloudflare Worker)     → same domain: /api, /photos, /internal
+admin/       admin panel pages (HTML/CSS/JS)            → admin.yourdomain.com
+admin-api/   admin backend (Cloudflare Worker)          → same subdomain: /api, /preview
+```
+
+```
+ customer ──► shop/ ──(/api/catalog)──► shop-api ──► KV storage (products, settings, photos)
+                                            ▲
+ owner ──► admin/ ──(/api/...)──► admin-api ┘  private API (/internal/*),
+                                               service binding + shared INTERNAL_API_KEY
+```
+
+- **shop-api** owns the data. It serves the public catalogue to the shop and a private
+  API that only the admin backend can use. Until the first save from the admin panel,
+  the catalogue comes from the bundled `shop/data/*.json`.
+- **admin-api** stores nothing. It handles the admin password login and forwards
+  every read and change to shop-api's private API.
 
 ## Features
 - Product grid with country-of-origin badges, category chips, country filter and search
-- **Add to Cart** button under every product, switching to a quantity stepper once added
-- Slide-out cart: change quantities, remove items, subtotal, clear cart, checkout form
-- Checkout asks for the customer's precise current location (browser GPS, high accuracy) and
-  attaches the coordinates and a map link to the order; the typed address remains the fallback
-- Cart is saved in the browser (`localStorage`), so it survives a page reload
-- "Origins" section listing every source country; click one to filter the shop
-- Responsive layout for phones and desktops
+- **Add to Cart** under every product, with a quantity stepper once added
+- Slide-out cart with checkout; orders are sent to your WhatsApp (see below)
+- Checkout asks for the customer's precise location and adds a map link to the order
+- 3D photo carousel of featured fruits on the homepage
+- Stock labels (limited, new arrival, sold out); sold-out fruits can't be ordered
+- Admin panel: add, edit, hide, reorder and delete products; upload photos; change
+  prices, stock, homepage text, WhatsApp number, minimum order and currency
 
-## Admin panel (change the shop without touching code)
-Go to `/admin` on the live site (e.g. `https://your-site.pages.dev/admin`) and log in
-with GitHub. From there you can:
+## Going online (Cloudflare)
+You create **two Workers** from this repository, one per backend. Deploy the shop first,
+because the admin backend connects to it by name.
 
-- **Products:** add, remove and reorder fruits; change names, prices, pack sizes,
-  categories, countries, descriptions and photos (upload straight from your phone or
-  computer); mark them *In stock*, *Limited stock*, *New arrival* or *Sold out*; hide
-  them from the site; and choose which ones appear in the homepage slider.
-- **Settings:** business name, tagline, email, phone, homepage heading, WhatsApp
-  number for orders, delivery note, minimum order and currency.
+### 1. Storefront (`fruit-shop`)
+1. Cloudflare dashboard → **Workers & Pages → Create → Import a repository**, pick this repo.
+2. Settings:
+   - **Project name:** `fruit-shop` (must match `name` in `shop-api/wrangler.jsonc`)
+   - **Root directory:** `shop-api`
+   - **Build command:** empty · **Deploy command:** `npx wrangler deploy`
+3. Deploy. The first deploy also creates the KV storage for products and photos.
+4. **Settings → Variables and Secrets → Add**: `INTERNAL_API_KEY` (type **Secret**), a long
+   random value (at least 16 characters, e.g. from a password generator). Redeploy.
+5. **Settings → Domains & Routes → Add → Custom domain**: `yourdomain.com` (optional; the
+   `workers.dev` address works too).
 
-Every save is stored in this repository (`data/products.json`, `data/settings.json`,
-photos in `images/photos/`), and the host republishes the site automatically, usually
-within a minute.
+### 2. Admin panel (`fruit-shop-admin`)
+1. **Create → Import a repository** again, same repo.
+2. Settings:
+   - **Project name:** `fruit-shop-admin` (matches `admin-api/wrangler.jsonc`)
+   - **Root directory:** `admin-api`
+   - **Build command:** empty · **Deploy command:** `npx wrangler deploy`
+3. Deploy, then **Settings → Variables and Secrets** and add:
 
-### One-time setup (after the site is on Cloudflare Pages)
-The admin panel logs in through GitHub, using a small login helper that runs on
-Cloudflare (`functions/api/auth.js` and `functions/api/callback.js`).
+   | Name | Type | Value |
+   |---|---|---|
+   | `ADMIN_PASSWORD` | Secret | the password you'll log in with (make it long) |
+   | `SESSION_SECRET` | Secret | another long random value |
+   | `INTERNAL_API_KEY` | Secret | **exactly the same** value as on `fruit-shop` |
+   | `SHOP_URL` | Text | the shop's address, e.g. `https://yourdomain.com` (for the "View shop" link) |
 
-1. On GitHub: **Settings → Developer settings → OAuth Apps → New OAuth App**.
-   - Homepage URL: your site address, e.g. `https://your-site.pages.dev`
-   - Authorization callback URL: `https://your-site.pages.dev/api/callback`
-   - Click **Register**, then **Generate a new client secret**.
-2. On Cloudflare: **Workers & Pages → your project → Settings → Variables and Secrets**,
-   add `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` (as a secret) for Production,
-   then redeploy once (**Deployments → ⋯ → Retry deployment**).
-3. Open `https://your-site.pages.dev/admin` and click **Login with GitHub**.
+   Redeploy.
+4. **Settings → Domains & Routes → Add → Custom domain**: `admin.yourdomain.com`.
+5. Open the admin address and log in with `ADMIN_PASSWORD`.
 
-If you later add your own domain, update the two URLs in the GitHub OAuth app to match.
+**Recommended extra protection:** put the admin subdomain behind **Cloudflare Access**
+(Zero Trust → Access → Applications → Add → Self-hosted, domain `admin.yourdomain.com`,
+allow only your email). It's free for small teams and adds an email one-time-code check
+before anyone even sees the login page.
 
-Only GitHub accounts that can push to this repository can save changes. To give
-someone else access, add them as a collaborator on the repository.
+If the first deploy of `fruit-shop` complains about the KV namespace, create one under
+**Storage & Databases → KV → Create** and add its id to `shop-api/wrangler.jsonc`:
+`"kv_namespaces": [{ "binding": "SHOP_DATA", "id": "<namespace id>" }]`.
 
-If the site is later published from a different branch (e.g. `main`), change
-`branch:` in `admin/config.yml` to match.
+Every push to the connected branch redeploys both Workers automatically.
 
-### Trying the admin panel on your computer
-Run `npx decap-server` in the project folder and, in a second terminal, serve the
-folder (e.g. `python3 -m http.server 8080`), then open `http://localhost:8080/admin`.
-Changes are written straight to your local files.
+## Using the admin panel
+- **Products:** click **Edit** to change a product, **+ Add product** for a new one, ↑/↓ to
+  reorder. Changes stay in the panel until you click **Save changes**.
+- **Photos:** in a product, **Upload photo** (JPG, PNG, WebP; up to 5 MB). Landscape
+  photos (about 4:3) fit the cards best.
+- **Settings:** business details, homepage heading, WhatsApp number, delivery note,
+  minimum order and currency. Click **Save settings**.
+
+The shop shows changes within about a minute.
 
 ## Orders
-Checkout sends the order to your WhatsApp. When a customer places an order,
-WhatsApp opens with the full order already written (items, quantities, total,
-name, phone, address and a map link to their location). They press send and it
-arrives on your number.
-
-Set the number in the admin panel under **Settings → Orders**, digits only with the
-country code (e.g. `919876543210`). While it's empty, checkout only shows an
-on-screen confirmation.
+Checkout sends the order to your WhatsApp. WhatsApp opens with the full order already
+written (items, quantities, total, name, phone, address and a map link); the customer
+presses send and it arrives on your number. Set the number in the admin panel under
+**Settings → Orders** (country code, digits only, e.g. `919876543210`). While it's empty,
+checkout only shows an on-screen confirmation.
 
 Browsers only allow location access on `https://` sites (or `localhost`).
 
-## Going online (Cloudflare Pages, free)
-1. Sign in at https://dash.cloudflare.com → **Workers & Pages → Create → Pages →
-   Connect to Git**, and pick this repository (private repositories work).
-2. Production branch: the branch to publish. Framework preset: **None**. Build command:
-   leave empty. Build output directory: `/`.
-3. Click **Save and Deploy**. You get an `https://<name>.pages.dev` address, and every
-   push to the branch updates the site automatically.
-4. Optional: **Custom domains** to use your own web address.
+## Running locally
+With Node.js installed:
 
-`_headers` keeps `/admin` out of search engines and lets browsers cache photos.
+```
+cd shop-api && npx wrangler dev --port 8787
+# in a second terminal
+cd admin-api && npx wrangler dev --port 8788
+```
+
+Put local secrets in `shop-api/.dev.vars` and `admin-api/.dev.vars` (one `NAME=value` per
+line; these files are git-ignored), then open http://localhost:8787 (shop) and
+http://localhost:8788 (admin).
 
 ## Photos
-Product photos are loaded from Wikimedia Commons under their free licences
-(mostly Creative Commons Attribution-ShareAlike). The footer's "Photo credits"
+Some bundled product photos come from Wikimedia Commons under their free licences
+(mostly Creative Commons Attribution-ShareAlike). The shop footer's "Photo credits"
 list links each photo's source page, which names the photographer and licence.
 If a photo can't load, the product falls back to its illustration or emoji.
 

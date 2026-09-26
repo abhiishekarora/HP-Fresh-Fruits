@@ -1,0 +1,5 @@
+# The admin panel is for the shop owner only.
+/*
+  X-Robots-Tag: noindex, nofollow
+  X-Frame-Options: DENY
+  Referrer-Policy: same-origin

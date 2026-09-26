@@ -1,9 +1,0 @@
-# Response headers for Cloudflare Pages.
-
-# The admin panel is for the shop owner only: keep it out of search results.
-/admin/*
-  X-Robots-Tag: noindex, nofollow
-
-# Photos rarely change, so let browsers cache them for a week.
-/images/*
-  Cache-Control: public, max-age=604800
