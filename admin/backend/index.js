@@ -69,7 +69,7 @@ async function api(request, env, url) {
 /* ---------- Talking to the storefront backend ---------- */
 
 async function shop(env, method, route, payload, contentType) {
-  if (!env.INTERNAL_API_KEY) return json({ error: "The admin backend is missing INTERNAL_API_KEY." }, 500);
+  if (!env.INTERNAL_API_KEY) return json({ error: "Admin setup incomplete. Add INTERNAL_API_KEY under Settings → Variables and Secrets on this Worker." }, 500);
   const headers = { "X-Internal-Key": env.INTERNAL_API_KEY };
   if (contentType) headers["Content-Type"] = contentType;
   const req = new Request("https://shop.internal/internal/" + route, { method, headers, body: payload });
@@ -97,8 +97,9 @@ async function preview(env, path) {
 /* ---------- Login and sessions ---------- */
 
 async function login(request, env, url) {
-  if (!env.ADMIN_EMAIL || !env.ADMIN_PASSWORD || !env.SESSION_SECRET) {
-    return json({ error: "The admin backend is missing ADMIN_EMAIL, ADMIN_PASSWORD or SESSION_SECRET." }, 500);
+  const missing = ["ADMIN_EMAIL", "ADMIN_PASSWORD", "SESSION_SECRET"].filter((name) => !env[name]);
+  if (missing.length) {
+    return json({ error: `Admin setup incomplete. Add ${missing.join(", ")} under Settings → Variables and Secrets on this Worker.` }, 500);
   }
   let email = "", password = "";
   try {
