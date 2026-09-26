@@ -59,9 +59,10 @@
       state.settings = data.settings || {};
       setDirty("products", false);
       setDirty("settings", false);
-      $("[data-brand]").textContent = (state.settings.brand && state.settings.brand.name) || "Shop";
+      $("[data-brand]").textContent = (state.settings.brand && state.settings.brand.name) || "Store";
       renderProducts();
       fillSettings();
+      renderOverview();
     } catch (err) {
       if (err.message !== "Not logged in") toast(err.message, true);
     }
@@ -109,35 +110,84 @@
 
     list.innerHTML = rows
       .map(({ p, i }) => `
-        <li class="product-row${p.visible === false ? " is-hidden" : ""}">
-          <div class="thumb" style="background:${escapeHtml(p.tint || "")}">${thumbHtml(p)}</div>
-          <div class="row-main">
-            <p class="row-name">${escapeHtml(p.name)}</p>
-            <p class="row-meta">${escapeHtml([p.unit, p.category, p.origin].filter(Boolean).join(" · "))}</p>
-          </div>
-          <div class="pills">
-            ${p.visible === false ? '<span class="pill">Hidden</span>' : ""}
-            <span class="pill stock-${escapeHtml(p.stock || "in_stock")}">${STOCK_LABELS[p.stock] || "In stock"}</span>
-            ${p.featured ? '<span class="pill featured">In slider</span>' : ""}
-          </div>
-          <span class="row-price">${money(p.price)}</span>
-          <div class="row-actions">
-            <button class="icon-btn" type="button" data-move="${i}" data-dir="-1" aria-label="Move ${escapeHtml(p.name)} up" ${i === 0 || q ? "disabled" : ""}>↑</button>
-            <button class="icon-btn" type="button" data-move="${i}" data-dir="1" aria-label="Move ${escapeHtml(p.name)} down" ${i === state.products.length - 1 || q ? "disabled" : ""}>↓</button>
-            <button class="btn btn-ghost btn-sm" type="button" data-edit="${i}">Edit</button>
-          </div>
-        </li>`)
+        <tr class="${p.visible === false ? "is-hidden" : ""}">
+          <td class="col-photo"><div class="thumb">${thumbHtml(p)}</div></td>
+          <td>
+            <div class="cell-name">${escapeHtml(p.name)}</div>
+            <div class="cell-sub">${escapeHtml(p.unit || "")}</div>
+          </td>
+          <td>${escapeHtml(p.category || "")}</td>
+          <td>${escapeHtml(p.origin || "")}</td>
+          <td class="num">${money(p.price)}</td>
+          <td>
+            <div class="badges">
+              <span class="badge stock-${escapeHtml(p.stock || "in_stock")}">${STOCK_LABELS[p.stock] || "In stock"}</span>
+              ${p.visible === false ? '<span class="badge">Hidden</span>' : ""}
+              ${p.featured ? '<span class="badge featured">Slider</span>' : ""}
+            </div>
+          </td>
+          <td class="col-actions">
+            <div class="row-actions">
+              <button class="icon-btn" type="button" data-move="${i}" data-dir="-1" aria-label="Move ${escapeHtml(p.name)} up" ${i === 0 || q ? "disabled" : ""}>↑</button>
+              <button class="icon-btn" type="button" data-move="${i}" data-dir="1" aria-label="Move ${escapeHtml(p.name)} down" ${i === state.products.length - 1 || q ? "disabled" : ""}>↓</button>
+              <button class="btn btn-ghost btn-sm" type="button" data-edit="${i}">Edit</button>
+            </div>
+          </td>
+        </tr>`)
       .join("");
 
     $("[data-product-empty]").hidden = rows.length > 0;
     const hidden = state.products.filter((p) => p.visible === false).length;
-    $("[data-product-count]").textContent = `${state.products.length} products${hidden ? ` (${hidden} hidden)` : ""}. The order here is the order on the shop.`;
+    $("[data-product-count]").textContent = `${state.products.length} products${hidden ? ` (${hidden} hidden)` : ""}. Rows appear on the customer site in this order.`;
 
     // Suggestions for category and country fields.
     const opts = (key) => [...new Set(state.products.map((p) => p[key]).filter(Boolean))].sort()
       .map((v) => `<option value="${escapeHtml(v)}">`).join("");
     $("#category-options").innerHTML = opts("category");
     $("#origin-options").innerHTML = opts("origin");
+  }
+
+  /* ---------- Overview ---------- */
+
+  function renderOverview() {
+    const ps = state.products;
+    const s = state.settings || {};
+    const count = (fn) => ps.filter(fn).length;
+    const live = count((p) => p.visible !== false);
+    const stats = [
+      ["Products", ps.length],
+      ["Live on site", live],
+      ["Hidden", ps.length - live],
+      ["Sold out", count((p) => p.stock === "sold_out")],
+      ["In homepage slider", count((p) => p.featured && p.visible !== false)],
+    ];
+    $("[data-stats]").innerHTML = stats
+      .map(([label, value]) => `<div class="stat"><p class="stat-label">${label}</p><p class="stat-value">${value}</p></div>`)
+      .join("");
+
+    const issues = [];
+    const whatsapp = s.orders && s.orders.whatsappNumber;
+    if (!whatsapp) issues.push("WhatsApp number is not set, so orders are not being sent to you. Add it in Settings.");
+    const noPhoto = ps.filter((p) => p.visible !== false && !p.photo);
+    if (noPhoto.length) issues.push(`${noPhoto.length} live product${noPhoto.length > 1 ? "s have" : " has"} no photo: ${noPhoto.map((p) => p.name).join(", ")}.`);
+    const soldOut = ps.filter((p) => p.visible !== false && p.stock === "sold_out");
+    if (soldOut.length) issues.push(`Sold out: ${soldOut.map((p) => p.name).join(", ")}.`);
+    const placeholder = /example\.com|00000/.test(`${s.brand && s.brand.email} ${s.brand && s.brand.phone}`);
+    if (placeholder) issues.push("The contact email or phone is still a placeholder. Update it in Settings.");
+    if (!count((p) => p.featured && p.visible !== false && p.photo)) issues.push("No products are in the homepage slider.");
+    $("[data-attention]").innerHTML = issues.length
+      ? issues.map((t) => `<li><span class="dot" aria-hidden="true"></span><span>${escapeHtml(t)}</span></li>`).join("")
+      : '<li><span class="dot ok" aria-hidden="true"></span><span>Everything looks good.</span></li>';
+
+    const m = s.minOrder || {};
+    const rows = [
+      ["Store name", (s.brand && s.brand.name) || "Not set"],
+      ["WhatsApp orders", whatsapp ? "+" + whatsapp : "Off"],
+      ["Minimum order", m.value ? (m.unit === "amount" ? money(m.value) : `${m.value} items`) : "None"],
+      ["Currency", (s.currency && s.currency.code) || "INR"],
+      ["Customer site", state.shopUrl || "Not set (SHOP_URL)"],
+    ];
+    $("[data-setup]").innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>`).join("");
   }
 
   function moveProduct(i, dir) {
@@ -249,7 +299,8 @@
       state.products = data.products;
       setDirty("products", false);
       renderProducts();
-      toast("Saved. The shop updates within a minute.");
+      renderOverview();
+      toast("Saved. The customer site updates within a minute.");
     } catch (err) {
       if (err.message !== "Not logged in") toast(err.message, true);
       btn.disabled = false;
@@ -294,7 +345,8 @@
       setDirty("settings", false);
       $("[data-brand]").textContent = state.settings.brand.name;
       renderProducts(); // currency may have changed
-      toast("Settings saved. The shop updates within a minute.");
+      renderOverview();
+      toast("Settings saved. The customer site updates within a minute.");
     } catch (err) {
       if (err.message !== "Not logged in") toast(err.message, true);
       btn.disabled = false;
