@@ -461,6 +461,63 @@
     });
   }
 
+  /* ---------- Hero carousel ---------- */
+
+  function initCarousel() {
+    // Only photos stored on the site, so every slide is guaranteed to load.
+    const slides = products.filter((p) => /^images\//.test(photoSrc(p) || ""));
+    const root = $("[data-carousel]");
+    if (!slides.length) { root.hidden = true; return; }
+
+    $("[data-slides]").innerHTML = slides
+      .map((p, i) => `
+        <figure class="slide${i === 0 ? " active" : ""}" aria-roledescription="slide" aria-label="${i + 1} of ${slides.length}" aria-hidden="${i !== 0}">
+          <img src="${escapeHtml(photoSrc(p))}" alt="${escapeHtml(p.name)}"${i === 0 ? "" : ' loading="lazy"'}>
+          <figcaption>
+            <div>
+              <p class="slide-name">${escapeHtml(p.name)}</p>
+              <p class="slide-origin">${FLAGS[p.origin] || "🌍"} Imported from ${escapeHtml(p.origin)}</p>
+            </div>
+            <span class="slide-price">${money.format(p.price)}</span>
+          </figcaption>
+        </figure>`)
+      .join("");
+    $("[data-dots]").innerHTML = slides
+      .map((p, i) => `<button type="button" data-dot="${i}" aria-label="Show ${escapeHtml(p.name)}" aria-current="${i === 0}"></button>`)
+      .join("");
+
+    const figs = $$(".slide", root);
+    const dots = $$("[data-dot]", root);
+    let current = 0;
+    let timer = null;
+
+    function show(i) {
+      current = (i + figs.length) % figs.length;
+      figs.forEach((f, n) => {
+        f.classList.toggle("active", n === current);
+        f.setAttribute("aria-hidden", String(n !== current));
+      });
+      dots.forEach((d, n) => d.setAttribute("aria-current", String(n === current)));
+    }
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function start() {
+      stop();
+      if (!reduceMotion) timer = setInterval(() => show(current + 1), 4000);
+    }
+    function stop() { clearInterval(timer); }
+
+    $("[data-slide-prev]").addEventListener("click", () => { show(current - 1); start(); });
+    $("[data-slide-next]").addEventListener("click", () => { show(current + 1); start(); });
+    dots.forEach((d) => d.addEventListener("click", () => { show(Number(d.dataset.dot)); start(); }));
+    root.addEventListener("mouseenter", stop);
+    root.addEventListener("mouseleave", start);
+    root.addEventListener("focusin", stop);
+    root.addEventListener("focusout", start);
+    document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
+    start();
+  }
+
   /* ---------- Init ---------- */
 
   applyBranding();
@@ -468,6 +525,7 @@
   renderFilters();
   renderProducts();
   renderCredits();
+  initCarousel();
   renderCart();
   bindEvents();
 })();
