@@ -218,6 +218,10 @@ p { margin: 0 0 .5em; }
 .site-footer { border-top: 1px solid var(--line); background: var(--tint); padding: 40px 0; }
 .footer-inner { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
 .footer-inner > .small { grid-column: 1 / -1; margin-top: 12px; }
+.credits { grid-column: 1 / -1; }
+.credits summary { cursor: pointer; color: var(--muted); }
+.credits ul { margin: 6px 0 0; padding-left: 18px; columns: 2 260px; color: var(--muted); }
+.credits a { color: var(--muted); }
 
 /* ---------- Cart drawer ---------- */
 .overlay { position: fixed; inset: 0; background: rgba(38, 51, 42, .25); z-index: 40; }

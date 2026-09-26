@@ -22,7 +22,7 @@ folder on any static host (GitHub Pages, Netlify, etc.).
 | Minimum order quantity (currently "to be announced") | `js/config.js` → `minOrder.value` / `unit` |
 | Currency | `js/config.js` → `currency` |
 | Products, prices, origins, descriptions | `js/products.js` |
-| Product photos | add `images/photos/<product-id>.jpg` (file names listed in `images/photos/README.md`) |
+| Product photos | `photo` on each product in `js/products.js` (Wikimedia Commons by default; see `images/photos/README.md` to use your own) |
 | Colours and fonts | CSS variables at the top of `css/styles.css` |
 
 When `minOrder.value` is set (e.g. `5` items, or `unit: "amount"` for a minimum cart
@@ -40,6 +40,12 @@ email or WhatsApp in `handleCheckout()` in `js/app.js`. The order includes `lati
 
 Browsers only allow location access on `https://` sites (or `localhost`).
 
+## Photos
+Product photos are loaded from Wikimedia Commons under their free licences
+(mostly Creative Commons Attribution-ShareAlike). The footer's "Photo credits"
+list links each photo's source page, which names the photographer and licence.
+If a photo can't load, the product falls back to its illustration or emoji.
+
 ## License
-Proprietary. Copyright (c) 2026 HP Fresh Fruits. All rights reserved.
+Proprietary (excluding third-party photos, which keep their own licences). Copyright (c) 2026 HP Fresh Fruits. All rights reserved.
 No use, copying or distribution without written permission. See [LICENSE](LICENSE).

@@ -1,22 +1,9 @@
 # Product photos
 
-Drop a real photo of each fruit here using the exact file name below (JPG,
-ideally square or 4:3, at least 800 px wide). A product without a photo shows
-its illustration or emoji until one is added.
+The site currently shows free-licence photos from Wikimedia Commons (see
+`js/products.js` and the "Photo credits" list in the site footer).
 
-- `dragon-fruit.jpg`
-- `avocado-hass.jpg`
-- `kiwi-gold.jpg`
-- `blueberries.jpg`
-- `mangosteen.jpg`
-- `rambutan.jpg`
-- `apple-fuji.jpg`
-- `pear-korean.jpg`
-- `grapes-shine.jpg`
-- `cherries.jpg`
-- `orange-navel.jpg`
-- `mandarin.jpg`
-- `passion-fruit.jpg`
-- `pomelo.jpg`
-- `longan.jpg`
-- `strawberry.jpg`
+To use your own photo for a product, put it here (JPG, ideally 4:3 and at
+least 800 px wide) and set that product's `photo` in `js/products.js`, e.g.:
+
+    photo: "images/photos/dragon-fruit.jpg",

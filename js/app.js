@@ -115,9 +115,21 @@
 
   // A real `photo` is shown when the file exists; until it is uploaded the
   // emoji / illustration is swapped back in (see the error listener below).
+  // `photo` is either a path/URL string or a Commons record ({src, source, title}).
+  const photoSrc = (p) => (typeof p.photo === "string" ? p.photo : p.photo && p.photo.src);
+
   function mediaHtml(p, alt) {
-    if (!p.photo) return artHtml(p, alt);
-    return `<img class="photo" src="${escapeHtml(p.photo)}" alt="${escapeHtml(alt)}" loading="lazy" data-fallback="${escapeHtml(artHtml(p, alt))}">`;
+    const src = photoSrc(p);
+    if (!src) return artHtml(p, alt);
+    return `<img class="photo" src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" loading="lazy" referrerpolicy="no-referrer" data-fallback="${escapeHtml(artHtml(p, alt))}">`;
+  }
+
+  function renderCredits() {
+    const items = products.filter((p) => p.photo && p.photo.source);
+    $("[data-credits-wrap]").hidden = items.length === 0;
+    $("[data-credits]").innerHTML = items
+      .map((p) => `<li>${escapeHtml(p.name)}: <a href="${escapeHtml(p.photo.source)}" target="_blank" rel="noopener">${escapeHtml(p.photo.title)}</a></li>`)
+      .join("");
   }
 
   function productCard(p) {
@@ -455,6 +467,7 @@
   $("[data-moq-note]").textContent = moqMessage();
   renderFilters();
   renderProducts();
+  renderCredits();
   renderCart();
   bindEvents();
 })();
