@@ -1,7 +1,9 @@
 /*
  * Product catalogue. Each product shows a real `photo`. These come from
  * Wikimedia Commons (free licences; credits are listed in the site footer).
- * To use your own photo instead, set `photo: "images/photos/<id>.jpg"`.
+ * Photos stored in images/photos/ override the Commons address via `src`
+ * (the Commons record is kept for the credit). To use a photo of your own,
+ * set `photo: "images/photos/<id>.jpg"`.
  * If a photo can't load, the card falls back to `image` (an illustration)
  * or `emoji`, on a `tint` background.
  */
@@ -17,12 +19,12 @@ function commonsPhoto(file) {
 }
 
 window.PRODUCTS = [
-  { id: "dragon-fruit",   name: "Dragon Fruit",      photo: commonsPhoto("Pitaya cross section ed2.jpg"), origin: "Vietnam",     price: 249, unit: "per piece",  image: "images/dragon-fruit.svg", tint: "#fde7f0", category: "Tropical", description: "Mildly sweet white flesh speckled with seeds, wrapped in a vivid pink skin." },
-  { id: "avocado-hass",   name: "Hass Avocado",      photo: commonsPhoto("Avocado Hass - single and halved.jpg"), origin: "Mexico",      price: 399, unit: "pack of 3",  emoji: "🥑", tint: "#eaf5e1", category: "Tropical", description: "Creamy, buttery avocados picked at peak maturity. Ripen at room temperature." },
-  { id: "kiwi-gold",      name: "Golden Kiwi",       photo: commonsPhoto("Kiwifruit 'Gold' cross section.jpg"), origin: "New Zealand", price: 349, unit: "pack of 6",  emoji: "🥝", tint: "#f4f7dc", category: "Berries & Kiwi", description: "Smooth-skinned kiwi with sweet, tropical golden flesh and low acidity." },
+  { id: "dragon-fruit",   name: "Dragon Fruit",      photo: { ...commonsPhoto("Pitaya cross section ed2.jpg"), src: "images/photos/dragon-fruit.webp" }, origin: "Vietnam",     price: 249, unit: "per piece",  image: "images/dragon-fruit.svg", tint: "#fde7f0", category: "Tropical", description: "Mildly sweet white flesh speckled with seeds, wrapped in a vivid pink skin." },
+  { id: "avocado-hass",   name: "Hass Avocado",      photo: { ...commonsPhoto("Avocado Hass - single and halved.jpg"), src: "images/photos/avocado-hass.webp" }, origin: "Mexico",      price: 399, unit: "pack of 3",  emoji: "🥑", tint: "#eaf5e1", category: "Tropical", description: "Creamy, buttery avocados picked at peak maturity. Ripen at room temperature." },
+  { id: "kiwi-gold",      name: "Golden Kiwi",       photo: { ...commonsPhoto("Kiwifruit 'Gold' cross section.jpg"), src: "images/photos/kiwi-gold.webp" }, origin: "New Zealand", price: 349, unit: "pack of 6",  emoji: "🥝", tint: "#f4f7dc", category: "Berries & Kiwi", description: "Smooth-skinned kiwi with sweet, tropical golden flesh and low acidity." },
   { id: "blueberries",    name: "Blueberries",       photo: commonsPhoto("Blueberries 3872x2592.jpg"), origin: "Peru",        price: 299, unit: "125 g box",  emoji: "🫐", tint: "#e6ebfa", category: "Berries & Kiwi", description: "Plump, dusty-blue berries, perfect for breakfast bowls and baking." },
-  { id: "mangosteen",     name: "Mangosteen",        photo: commonsPhoto("Mangosteens - whole and opened.jpg"), origin: "Thailand",    price: 699, unit: "500 g",      image: "images/mangosteen.svg", tint: "#efe6f5", category: "Tropical", description: "The 'queen of fruits': juicy, tangy-sweet segments under a deep purple rind." },
-  { id: "rambutan",       name: "Rambutan",          photo: commonsPhoto("Rambutan fruits (Nephelium lappaceum).JPG"), origin: "Malaysia",    price: 549, unit: "500 g",      image: "images/rambutan.svg", tint: "#fde8e4", category: "Tropical", description: "Hairy red shell hiding translucent, lychee-like flesh with a floral finish." },
+  { id: "mangosteen",     name: "Mangosteen",        photo: { ...commonsPhoto("Mangosteens - whole and opened.jpg"), src: "images/photos/mangosteen.webp" }, origin: "Thailand",    price: 699, unit: "500 g",      image: "images/mangosteen.svg", tint: "#efe6f5", category: "Tropical", description: "The 'queen of fruits': juicy, tangy-sweet segments under a deep purple rind." },
+  { id: "rambutan",       name: "Rambutan",          photo: { ...commonsPhoto("Rambutan fruits (Nephelium lappaceum).JPG"), src: "images/photos/rambutan.webp" }, origin: "Malaysia",    price: 549, unit: "500 g",      image: "images/rambutan.svg", tint: "#fde8e4", category: "Tropical", description: "Hairy red shell hiding translucent, lychee-like flesh with a floral finish." },
   { id: "apple-fuji",     name: "Fuji Apple",        photo: commonsPhoto("Fuji apple.jpg"), origin: "Japan",       price: 459, unit: "pack of 4",  emoji: "🍎", tint: "#fdeaea", category: "Orchard", description: "Crisp, dense and honey-sweet. A premium dessert apple with a long shelf life." },
   { id: "pear-korean",    name: "Korean Pear",       photo: commonsPhoto("Korean.pear-Bae-Singo-01.jpg"), origin: "South Korea", price: 499, unit: "pack of 2",  emoji: "🍐", tint: "#f5f3dc", category: "Orchard", description: "Large, round and incredibly juicy with a crunchy, refreshing bite." },
   { id: "grapes-shine",   name: "Shine Muscat Grapes", photo: commonsPhoto("Shine muscat (grape).jpg"), origin: "Japan",     price: 1299, unit: "500 g",     emoji: "🍇", tint: "#eef6e4", category: "Grapes", description: "Seedless green grapes with edible skin and a fragrant, muscat sweetness." },
