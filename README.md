@@ -46,10 +46,10 @@ admin/                    the admin panel, completely separate             → a
 You create **two Workers** from this repository, one per backend. Deploy the shop first,
 because the admin backend connects to it by name.
 
-### 1. Customer website (`fruit-shop`)
+### 1. Customer website (`hp-fresh-fruits`)
 1. Cloudflare dashboard → **Workers & Pages → Create → Import a repository**, pick this repo.
 2. Settings:
-   - **Project name:** `fruit-shop` (must match `name` in `wrangler.jsonc`)
+   - **Project name:** `hp-fresh-fruits` (must match `name` in `wrangler.jsonc`)
    - **Root directory:** leave empty (the repository root)
    - **Build command:** empty · **Deploy command:** `npx wrangler deploy`
 3. Deploy. The first deploy also creates the KV storage for products and photos.
@@ -70,7 +70,7 @@ because the admin backend connects to it by name.
    |---|---|---|
    | `ADMIN_PASSWORD` | Secret | the password you'll log in with (make it long) |
    | `SESSION_SECRET` | Secret | another long random value |
-   | `INTERNAL_API_KEY` | Secret | **exactly the same** value as on `fruit-shop` |
+   | `INTERNAL_API_KEY` | Secret | **exactly the same** value as on `hp-fresh-fruits` |
    | `SHOP_URL` | Text | the shop's address, e.g. `https://yourdomain.com` (for the "View shop" link) |
 
    Redeploy.
@@ -82,7 +82,7 @@ because the admin backend connects to it by name.
 allow only your email). It's free for small teams and adds an email one-time-code check
 before anyone even sees the login page.
 
-If the first deploy of `fruit-shop` complains about the KV namespace, create one under
+If the first deploy of `hp-fresh-fruits` complains about the KV namespace, create one under
 **Storage & Databases → KV → Create** and add its id to `wrangler.jsonc`:
 `"kv_namespaces": [{ "binding": "SHOP_DATA", "id": "<namespace id>" }]`.
 

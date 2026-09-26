@@ -1,6 +1,6 @@
 // Admin panel: its pages (public/) plus the admin backend (backend/index.js).
 // Deploy from this folder with `npx wrangler deploy` (Cloudflare project root
-// directory: admin), on the admin subdomain. Deploy fruit-shop first.
+// directory: admin), on the admin subdomain. Deploy hp-fresh-fruits first.
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "hpadmin",
@@ -10,8 +10,8 @@
     "directory": "public",
     "binding": "ASSETS"
   },
-  // Calls the customer site's backend (fruit-shop) directly inside Cloudflare.
-  "services": [{ "binding": "SHOP_API", "service": "fruit-shop" }],
+  // Calls the customer site's backend (hp-fresh-fruits) directly inside Cloudflare.
+  "services": [{ "binding": "SHOP_API", "service": "hp-fresh-fruits" }],
   // Set in the dashboard and kept between deploys:
   //   ADMIN_PASSWORD, SESSION_SECRET, INTERNAL_API_KEY (secrets)
   //   SHOP_URL (optional text, the shop's address for the "Open customer site" link)

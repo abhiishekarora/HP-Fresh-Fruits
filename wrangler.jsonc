@@ -3,7 +3,7 @@
 // (Cloudflare project root directory: leave empty).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "fruit-shop",
+  "name": "hp-fresh-fruits",
   "main": "backend/index.js",
   "compatibility_date": "2026-09-01",
   // The website's files. .assetsignore keeps the backend, the admin folder and
