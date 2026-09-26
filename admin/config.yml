@@ -1,5 +1,5 @@
 # Admin panel (Decap CMS) settings.
-# Every save commits the change to GitHub, and the host (Netlify) republishes
+# Every save commits the change to GitHub, and Cloudflare Pages republishes
 # the site automatically a few seconds later.
 backend:
   name: github
@@ -16,10 +16,8 @@ backend:
 # Has no effect on the live site.
 local_backend: true
 
-# The live shop, linked from the admin panel's header.
-site_url: https://hpvadodara.netlify.app
-display_url: https://hpvadodara.netlify.app
-logo_url: https://hpvadodara.netlify.app/images/photos/dragon-fruit.webp
+# The site address, the login service and the logo are filled in by
+# admin/index.html from whichever address the panel is opened on.
 
 media_folder: images/photos
 public_folder: images/photos

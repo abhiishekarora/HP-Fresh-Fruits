@@ -16,7 +16,7 @@ Plain HTML/CSS/JS with no build step. Products and settings live in `data/*.json
 - Responsive layout for phones and desktops
 
 ## Admin panel (change the shop without touching code)
-Go to `/admin` on the live site (e.g. `https://hpvadodara.netlify.app/admin`) and log in
+Go to `/admin` on the live site (e.g. `https://your-site.pages.dev/admin`) and log in
 with GitHub. From there you can:
 
 - **Products:** add, remove and reorder fruits; change names, prices, pack sizes,
@@ -30,16 +30,20 @@ Every save is stored in this repository (`data/products.json`, `data/settings.js
 photos in `images/photos/`), and the host republishes the site automatically, usually
 within a minute.
 
-### One-time setup (after the site is on Netlify)
-The admin panel logs in through GitHub, so it needs a GitHub "OAuth app":
+### One-time setup (after the site is on Cloudflare Pages)
+The admin panel logs in through GitHub, using a small login helper that runs on
+Cloudflare (`functions/api/auth.js` and `functions/api/callback.js`).
 
 1. On GitHub: **Settings → Developer settings → OAuth Apps → New OAuth App**.
-   - Homepage URL: your site address, e.g. `https://hpvadodara.netlify.app`
-   - Authorization callback URL: `https://api.netlify.com/auth/done`
+   - Homepage URL: your site address, e.g. `https://your-site.pages.dev`
+   - Authorization callback URL: `https://your-site.pages.dev/api/callback`
    - Click **Register**, then **Generate a new client secret**.
-2. On Netlify: **Site configuration → Access & security → OAuth → Install provider →
-   GitHub**, and paste the Client ID and Client secret.
-3. Open `https://hpvadodara.netlify.app/admin` and click **Login with GitHub**.
+2. On Cloudflare: **Workers & Pages → your project → Settings → Variables and Secrets**,
+   add `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` (as a secret) for Production,
+   then redeploy once (**Deployments → ⋯ → Retry deployment**).
+3. Open `https://your-site.pages.dev/admin` and click **Login with GitHub**.
+
+If you later add your own domain, update the two URLs in the GitHub OAuth app to match.
 
 Only GitHub accounts that can push to this repository can save changes. To give
 someone else access, add them as a collaborator on the repository.
@@ -64,14 +68,16 @@ on-screen confirmation.
 
 Browsers only allow location access on `https://` sites (or `localhost`).
 
-## Going online (Netlify, free)
-1. Sign up at https://app.netlify.com with your GitHub account.
-2. **Add new site → Import an existing project → GitHub**, and pick this repository
-   (private repositories work). Choose the branch to publish.
-3. Leave the build command empty; `netlify.toml` already sets everything.
-4. Click **Deploy**. You get an `https://<name>.netlify.app` address straight away,
-   and every push to the branch updates the site automatically.
-5. Optional: **Domain management → Add a domain** to use your own web address.
+## Going online (Cloudflare Pages, free)
+1. Sign in at https://dash.cloudflare.com → **Workers & Pages → Create → Pages →
+   Connect to Git**, and pick this repository (private repositories work).
+2. Production branch: the branch to publish. Framework preset: **None**. Build command:
+   leave empty. Build output directory: `/`.
+3. Click **Save and Deploy**. You get an `https://<name>.pages.dev` address, and every
+   push to the branch updates the site automatically.
+4. Optional: **Custom domains** to use your own web address.
+
+`_headers` keeps `/admin` out of search engines and lets browsers cache photos.
 
 ## Photos
 Product photos are loaded from Wikimedia Commons under their free licences

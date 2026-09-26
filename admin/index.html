@@ -8,6 +8,22 @@
 </head>
 <body>
   <!-- Decap CMS: the editor for data/*.json. Settings are in admin/config.yml. -->
+  <script>window.CMS_MANUAL_INIT = true;</script>
   <script src="https://unpkg.com/decap-cms@3.16.3/dist/decap-cms.js"></script>
+  <script>
+    // These values are merged into admin/config.yml.
+    var origin = window.location.origin;
+    var extra = {
+      site_url: origin,
+      display_url: origin,
+      logo_url: origin + "/images/photos/dragon-fruit.webp",
+    };
+    // GitHub login goes through this site's Cloudflare functions (functions/api/).
+    // On localhost the panel uses the local file server instead (npx decap-server).
+    if (!/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) {
+      extra.backend = { base_url: origin, auth_endpoint: "api/auth" };
+    }
+    CMS.init({ config: extra });
+  </script>
 </body>
 </html>
