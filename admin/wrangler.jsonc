@@ -3,7 +3,7 @@
 // directory: admin), on the admin subdomain. Deploy fruit-shop first.
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
-  "name": "fruit-shop-admin",
+  "name": "hpadmin",
   "main": "backend/index.js",
   "compatibility_date": "2026-09-01",
   "assets": {

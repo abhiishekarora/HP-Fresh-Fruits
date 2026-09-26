@@ -58,10 +58,10 @@ because the admin backend connects to it by name.
 5. **Settings → Domains & Routes → Add → Custom domain**: `yourdomain.com` (optional; the
    `workers.dev` address works too).
 
-### 2. Admin panel (`fruit-shop-admin`)
+### 2. Admin panel (`hpadmin`)
 1. **Create → Import a repository** again, same repo.
 2. Settings:
-   - **Project name:** `fruit-shop-admin` (matches `admin/wrangler.jsonc`)
+   - **Project name:** `hpadmin` (matches `admin/wrangler.jsonc`)
    - **Root directory:** `admin`
    - **Build command:** empty · **Deploy command:** `npx wrangler deploy`
 3. Deploy, then **Settings → Variables and Secrets** and add:
