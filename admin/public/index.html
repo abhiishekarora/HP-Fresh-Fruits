@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Admin Console</title>
+  <link rel="icon" href="logo.webp">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -12,13 +13,9 @@
   <main class="login" data-view="login" hidden>
     <form class="login-card" data-login-form>
       <div class="login-brand">
-        <span class="console-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v14H4zM4 9h16M9 9v10"/></svg>
-        </span>
-        <div>
-          <h1>Admin Console</h1>
-          <p class="muted">Staff only. Sign in to manage the store.</p>
-        </div>
+        <img class="login-logo" src="logo.webp" alt="HP Fresh Fruits">
+        <h1>Admin Console</h1>
+        <p class="muted">Staff only. Sign in to manage the store.</p>
       </div>
       <label>Email
         <input type="email" name="email" autocomplete="username" required autofocus>
@@ -36,9 +33,7 @@
   <div class="app" data-view="app" hidden>
     <aside class="sidebar">
       <div class="side-brand">
-        <span class="console-mark small" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v14H4zM4 9h16M9 9v10"/></svg>
-        </span>
+        <img class="side-logo" src="logo.webp" alt="HP Fresh Fruits">
         <div>
           <strong>Admin Console</strong>
           <small data-brand>Store</small>
