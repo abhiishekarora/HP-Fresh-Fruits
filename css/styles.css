@@ -129,7 +129,8 @@ p { margin: 0 0 .5em; }
 .b4 { width: 32%; height: 32%; bottom: 4%; left: 28%; font-size: 3.6rem; animation-delay: -3s; }
 .b5 { width: 18%; height: 18%; top: 52%; left: 4%;  font-size: 2rem; animation-delay: -4s; }
 .b6 { width: 16%; height: 16%; bottom: 10%; right: 18%; font-size: 1.8rem; animation-delay: -5s; }
-.bubble img { width: 60%; }
+.bubble { overflow: hidden; border: 4px solid var(--surface); }
+.bubble img { width: 100%; height: 100%; object-fit: cover; }
 @keyframes float { 50% { transform: translateY(-10px); } }
 @media (prefers-reduced-motion: reduce) { .bubble { animation: none; } html { scroll-behavior: auto; } }
 
