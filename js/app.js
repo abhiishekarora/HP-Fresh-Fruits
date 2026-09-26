@@ -474,11 +474,8 @@
         <figure class="slide${i === 0 ? " active" : ""}" aria-roledescription="slide" aria-label="${i + 1} of ${slides.length}" aria-hidden="${i !== 0}">
           <img src="${escapeHtml(photoSrc(p))}" alt="${escapeHtml(p.name)}"${i === 0 ? "" : ' loading="lazy"'}>
           <figcaption>
-            <div>
-              <p class="slide-name">${escapeHtml(p.name)}</p>
-              <p class="slide-origin">${FLAGS[p.origin] || "🌍"} Imported from ${escapeHtml(p.origin)}</p>
-            </div>
-            <span class="slide-price">${money.format(p.price)}</span>
+            <p class="slide-name">${escapeHtml(p.name)}</p>
+            <p class="slide-origin">${FLAGS[p.origin] || "🌍"} Imported from ${escapeHtml(p.origin)}</p>
           </figcaption>
         </figure>`)
       .join("");
@@ -493,9 +490,17 @@
 
     function show(i) {
       current = (i + figs.length) % figs.length;
+      const len = figs.length;
       figs.forEach((f, n) => {
-        f.classList.toggle("active", n === current);
-        f.setAttribute("aria-hidden", String(n !== current));
+        // Shortest signed distance around the loop, so cards wrap both ways.
+        let d = (n - current + len) % len;
+        if (d > len / 2) d -= len;
+        f.style.setProperty("--d", d);
+        f.style.setProperty("--abs", Math.abs(d));
+        f.classList.toggle("active", d === 0);
+        f.classList.toggle("far", Math.abs(d) > 2);
+        f.classList.toggle("second", Math.abs(d) === 2);
+        f.setAttribute("aria-hidden", String(d !== 0));
       });
       dots.forEach((d, n) => d.setAttribute("aria-current", String(n === current)));
     }
@@ -506,6 +511,10 @@
       if (!reduceMotion) timer = setInterval(() => show(current + 1), 4000);
     }
     function stop() { clearInterval(timer); }
+
+    // Clicking a side card brings it to the front.
+    figs.forEach((f, n) => f.addEventListener("click", () => { if (n !== current) { show(n); start(); } }));
+    show(0);
 
     $("[data-slide-prev]").addEventListener("click", () => { show(current - 1); start(); });
     $("[data-slide-next]").addEventListener("click", () => { show(current + 1); start(); });
