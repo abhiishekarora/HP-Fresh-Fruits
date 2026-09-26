@@ -11,6 +11,7 @@
     settings: null,
     dirty: { products: false, settings: false },
     shopUrl: "",
+    methods: null, // which sign-in options the backend offers
     editing: -1, // index in state.products, or -1 for a new product
     draftPhoto: "",
   };
@@ -41,11 +42,20 @@
   function showLogin(message) {
     $('[data-view="app"]').hidden = true;
     $('[data-view="login"]').hidden = false;
+    const m = state.methods || { google: false, password: true };
+    $("[data-google-login]").hidden = !m.google;
+    $("[data-password-login]").hidden = !m.password;
+    $("[data-login-divider]").hidden = !(m.google && m.password);
+    $("[data-login-setup]").hidden = m.google || m.password;
     const err = $("[data-login-error]");
     err.textContent = message || "";
     err.hidden = !message;
-    const email = $('[name="email"]');
-    (email.value ? $('[name="password"]') : email).focus();
+    if (m.password) {
+      const email = $('[name="email"]');
+      (email.value ? $('[name="password"]') : email).focus();
+    } else if (m.google) {
+      $("[data-google-login]").focus();
+    }
   }
 
   async function showApp() {
@@ -449,8 +459,13 @@
     try {
       const session = await api("session");
       state.shopUrl = session.shopUrl || "";
+      state.methods = session.methods;
+      // Errors from Google sign-in come back as ?login_error=...
+      const params = new URLSearchParams(location.search);
+      const loginError = params.get("login_error");
+      if (params.has("login_error")) history.replaceState(null, "", location.pathname);
       if (session.loggedIn) await showApp();
-      else showLogin();
+      else showLogin(loginError);
     } catch (err) {
       showLogin("Could not reach the admin backend.");
     }

@@ -27,7 +27,7 @@ admin/                    the admin panel, completely separate             → a
 - The **website backend** owns the data. It serves the public catalogue to the website and
   a private API that only the admin backend can use. Until the first save from the admin
   panel, the catalogue comes from the bundled `data/*.json`.
-- The **admin backend** stores nothing. It handles the admin email and password sign-in and forwards
+- The **admin backend** stores nothing. It handles admin sign-in (Google or email + password) and forwards
   every read and change to the website backend's private API.
 - Nothing from `admin/` or `backend/` is published on the customer website (see
   `.assetsignore`).
@@ -68,15 +68,32 @@ because the admin backend connects to it by name.
 
    | Name | Type | Value |
    |---|---|---|
-   | `ADMIN_EMAIL` | Secret | the email you'll sign in with |
-   | `ADMIN_PASSWORD` | Secret | the password you'll sign in with (make it long) |
+   | `ADMIN_EMAIL` | Secret | who may sign in; several addresses separated by commas |
+   | `GOOGLE_CLIENT_ID` | Secret | from Google Cloud (see "Sign in with Google" below) |
+   | `GOOGLE_CLIENT_SECRET` | Secret | from Google Cloud |
+   | `ADMIN_PASSWORD` | Secret | optional: enables email + password sign-in as well |
    | `SESSION_SECRET` | Secret | another long random value |
    | `INTERNAL_API_KEY` | Secret | **exactly the same** value as on `hp-fresh-fruits` |
    | `SHOP_URL` | Text | the shop's address, e.g. `https://yourdomain.com` (for the "View shop" link) |
 
    Redeploy.
 4. **Settings → Domains & Routes → Add → Custom domain**: `admin.yourdomain.com`.
-5. Open the admin address and sign in with `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
+5. Open the admin address and click **Sign in with Google** (or use email + password).
+
+### Sign in with Google (one-time setup)
+1. Go to https://console.cloud.google.com, create a project (e.g. "HP Fresh Fruits Admin").
+2. **APIs & Services → OAuth consent screen**: user type **External**, app name, your email.
+   Add your admin email(s) as **test users** (or publish the app).
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
+   - Application type: **Web application**
+   - Authorised redirect URI: `https://<your admin address>/api/oauth/google/callback`
+     (e.g. `https://hpadmin.lazietech.workers.dev/api/oauth/google/callback`; add the
+     custom-domain version too if you use one)
+4. Copy the **Client ID** and **Client secret** into `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET` on the admin Worker.
+
+Only Google accounts listed in `ADMIN_EMAIL` (with a verified email) get in. The admin
+backend uses the authorization-code flow with PKCE and a one-time state check.
 
 **Recommended extra protection:** put the admin subdomain behind **Cloudflare Access**
 (Zero Trust → Access → Applications → Add → Self-hosted, domain `admin.yourdomain.com`,
