@@ -16,7 +16,7 @@ Plain HTML/CSS/JS with no build step. Products and settings live in `data/*.json
 - Responsive layout for phones and desktops
 
 ## Admin panel (change the shop without touching code)
-Go to `/admin` on the live site (e.g. `https://your-site.netlify.app/admin`) and log in
+Go to `/admin` on the live site (e.g. `https://hpvadodara.netlify.app/admin`) and log in
 with GitHub. From there you can:
 
 - **Products:** add, remove and reorder fruits; change names, prices, pack sizes,
@@ -34,12 +34,12 @@ within a minute.
 The admin panel logs in through GitHub, so it needs a GitHub "OAuth app":
 
 1. On GitHub: **Settings → Developer settings → OAuth Apps → New OAuth App**.
-   - Homepage URL: your site address, e.g. `https://your-site.netlify.app`
+   - Homepage URL: your site address, e.g. `https://hpvadodara.netlify.app`
    - Authorization callback URL: `https://api.netlify.com/auth/done`
    - Click **Register**, then **Generate a new client secret**.
 2. On Netlify: **Site configuration → Access & security → OAuth → Install provider →
    GitHub**, and paste the Client ID and Client secret.
-3. Open `https://your-site.netlify.app/admin` and click **Login with GitHub**.
+3. Open `https://hpvadodara.netlify.app/admin` and click **Login with GitHub**.
 
 Only GitHub accounts that can push to this repository can save changes. To give
 someone else access, add them as a collaborator on the repository.
