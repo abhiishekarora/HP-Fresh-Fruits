@@ -1,0 +1,13 @@
+# Files in the repository that must not be published on the customer website.
+.git
+.github
+.gitignore
+.wrangler
+.dev.vars
+node_modules
+admin
+backend
+wrangler.jsonc
+README.md
+LICENSE
+images/photos/README.md

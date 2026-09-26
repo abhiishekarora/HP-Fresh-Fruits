@@ -11,10 +11,10 @@
 //   POST   /internal/photos    upload a photo (raw image body)
 //   DELETE /internal/photos/<name>
 //
-// Everything else is a static file from ../shop.
+// Everything else is a static file of the website (repository root).
 //
 // Data lives in the SHOP_DATA KV namespace. Until the admin panel saves for
-// the first time, the catalogue comes from the bundled shop/data/*.json files.
+// the first time, the catalogue comes from the bundled data/*.json files.
 
 const STOCK = ["in_stock", "limited", "new", "sold_out"];
 const PHOTO_TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "image/avif": "avif" };
@@ -121,7 +121,7 @@ async function isInternalCaller(request, env) {
 async function loadDoc(env, name) {
   const saved = await env.SHOP_DATA.get("catalog:" + name, "json");
   if (saved) return saved;
-  // First run: fall back to the catalogue bundled with the shop's files.
+  // First run: fall back to the catalogue bundled with the website.
   const res = await env.ASSETS.fetch(new Request(`https://assets.local/data/${name}.json`));
   if (!res.ok) throw new Error(`Missing bundled data/${name}.json`);
   const doc = await res.json();

@@ -6,24 +6,31 @@ Both run on Cloudflare Workers (free plan), each with its own backend.
 ## How it's organised
 
 ```
-shop/        storefront pages (HTML/CSS/JS)             → yourdomain.com
-shop-api/    storefront backend (Cloudflare Worker)     → same domain: /api, /photos, /internal
-admin/       admin panel pages (HTML/CSS/JS)            → admin.yourdomain.com
-admin-api/   admin backend (Cloudflare Worker)          → same subdomain: /api, /preview
+/  (repository root)      the customer website, where people order fruits  → yourdomain.com
+  index.html, css/, js/, images/, data/
+  backend/index.js        the website's backend (Cloudflare Worker): /api, /photos, /internal
+  wrangler.jsonc          deploys the website
+
+admin/                    the admin panel, completely separate             → admin.yourdomain.com
+  public/                 admin pages
+  backend/index.js        admin backend (Cloudflare Worker): login, /api, /preview
+  wrangler.jsonc          deploys the admin panel
 ```
 
 ```
- customer ──► shop/ ──(/api/catalog)──► shop-api ──► KV storage (products, settings, photos)
-                                            ▲
- owner ──► admin/ ──(/api/...)──► admin-api ┘  private API (/internal/*),
-                                               service binding + shared INTERNAL_API_KEY
+ customer ──► website ──(/api/catalog)──► website backend ──► KV storage (products, settings, photos)
+                                               ▲
+ owner ──► admin pages ──(/api/...)──► admin backend ┘ private API (/internal/*),
+                                                      service binding + shared INTERNAL_API_KEY
 ```
 
-- **shop-api** owns the data. It serves the public catalogue to the shop and a private
-  API that only the admin backend can use. Until the first save from the admin panel,
-  the catalogue comes from the bundled `shop/data/*.json`.
-- **admin-api** stores nothing. It handles the admin password login and forwards
-  every read and change to shop-api's private API.
+- The **website backend** owns the data. It serves the public catalogue to the website and
+  a private API that only the admin backend can use. Until the first save from the admin
+  panel, the catalogue comes from the bundled `data/*.json`.
+- The **admin backend** stores nothing. It handles the admin password login and forwards
+  every read and change to the website backend's private API.
+- Nothing from `admin/` or `backend/` is published on the customer website (see
+  `.assetsignore`).
 
 ## Features
 - Product grid with country-of-origin badges, category chips, country filter and search
@@ -39,11 +46,11 @@ admin-api/   admin backend (Cloudflare Worker)          → same subdomain: /api
 You create **two Workers** from this repository, one per backend. Deploy the shop first,
 because the admin backend connects to it by name.
 
-### 1. Storefront (`fruit-shop`)
+### 1. Customer website (`fruit-shop`)
 1. Cloudflare dashboard → **Workers & Pages → Create → Import a repository**, pick this repo.
 2. Settings:
-   - **Project name:** `fruit-shop` (must match `name` in `shop-api/wrangler.jsonc`)
-   - **Root directory:** `shop-api`
+   - **Project name:** `fruit-shop` (must match `name` in `wrangler.jsonc`)
+   - **Root directory:** leave empty (the repository root)
    - **Build command:** empty · **Deploy command:** `npx wrangler deploy`
 3. Deploy. The first deploy also creates the KV storage for products and photos.
 4. **Settings → Variables and Secrets → Add**: `INTERNAL_API_KEY` (type **Secret**), a long
@@ -54,8 +61,8 @@ because the admin backend connects to it by name.
 ### 2. Admin panel (`fruit-shop-admin`)
 1. **Create → Import a repository** again, same repo.
 2. Settings:
-   - **Project name:** `fruit-shop-admin` (matches `admin-api/wrangler.jsonc`)
-   - **Root directory:** `admin-api`
+   - **Project name:** `fruit-shop-admin` (matches `admin/wrangler.jsonc`)
+   - **Root directory:** `admin`
    - **Build command:** empty · **Deploy command:** `npx wrangler deploy`
 3. Deploy, then **Settings → Variables and Secrets** and add:
 
@@ -76,7 +83,7 @@ allow only your email). It's free for small teams and adds an email one-time-cod
 before anyone even sees the login page.
 
 If the first deploy of `fruit-shop` complains about the KV namespace, create one under
-**Storage & Databases → KV → Create** and add its id to `shop-api/wrangler.jsonc`:
+**Storage & Databases → KV → Create** and add its id to `wrangler.jsonc`:
 `"kv_namespaces": [{ "binding": "SHOP_DATA", "id": "<namespace id>" }]`.
 
 Every push to the connected branch redeploys both Workers automatically.
@@ -104,13 +111,12 @@ Browsers only allow location access on `https://` sites (or `localhost`).
 With Node.js installed:
 
 ```
-cd shop-api && npx wrangler dev --port 8787
-# in a second terminal
-cd admin-api && npx wrangler dev --port 8788
+npx wrangler dev --port 8787              # customer website, from the repository root
+cd admin && npx wrangler dev --port 8788  # admin panel, in a second terminal
 ```
 
-Put local secrets in `shop-api/.dev.vars` and `admin-api/.dev.vars` (one `NAME=value` per
-line; these files are git-ignored), then open http://localhost:8787 (shop) and
+Put local secrets in `.dev.vars` (root) and `admin/.dev.vars` (one `NAME=value` per line;
+these files are git-ignored), then open http://localhost:8787 (website) and
 http://localhost:8788 (admin).
 
 ## Photos

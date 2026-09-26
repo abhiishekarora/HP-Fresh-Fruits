@@ -1,0 +1,21 @@
+// Customer website: the shop pages in this folder plus the shop backend
+// (backend/index.js). Deploy from the repository root with `npx wrangler deploy`
+// (Cloudflare project root directory: leave empty).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fruit-shop",
+  "main": "backend/index.js",
+  "compatibility_date": "2026-09-01",
+  // The website's files. .assetsignore keeps the backend, the admin folder and
+  // repository files off the website.
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  },
+  // Products, settings and uploaded photos. Wrangler creates the namespace on
+  // the first deploy.
+  "kv_namespaces": [{ "binding": "SHOP_DATA" }],
+  // INTERNAL_API_KEY is a secret set in the dashboard; keep it between deploys.
+  "keep_vars": true,
+  "observability": { "enabled": true }
+}

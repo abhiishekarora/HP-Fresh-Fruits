@@ -13,7 +13,7 @@
 // storefront backend's private API (/internal/*), through the SHOP_API service
 // binding, authenticated with the shared INTERNAL_API_KEY.
 //
-// Everything else is a static file from ../admin.
+// Everything else is a static file from public/.
 
 const SESSION_COOKIE = "admin_session";
 const SESSION_HOURS = 12;
