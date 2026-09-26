@@ -1,6 +1,6 @@
 // Admin backend (Cloudflare Worker), on the admin subdomain.
 //
-//   POST /api/login           { password } -> sets the session cookie
+//   POST /api/login           { email, password } -> sets the session cookie
 //   POST /api/logout
 //   GET  /api/session         is the visitor logged in?
 //   GET  /api/catalog         settings + all products     (login required)
@@ -97,18 +97,22 @@ async function preview(env, path) {
 /* ---------- Login and sessions ---------- */
 
 async function login(request, env, url) {
-  if (!env.ADMIN_PASSWORD || !env.SESSION_SECRET) {
-    return json({ error: "The admin backend is missing ADMIN_PASSWORD or SESSION_SECRET." }, 500);
+  if (!env.ADMIN_EMAIL || !env.ADMIN_PASSWORD || !env.SESSION_SECRET) {
+    return json({ error: "The admin backend is missing ADMIN_EMAIL, ADMIN_PASSWORD or SESSION_SECRET." }, 500);
   }
-  let password = "";
+  let email = "", password = "";
   try {
-    password = String((await request.json()).password || "");
+    const body = await request.json();
+    email = String(body.email || "").trim().toLowerCase();
+    password = String(body.password || "");
   } catch {}
-  // Compare hashes so the check takes the same time whatever was typed.
-  const ok = safeEqual(await sha256(password), await sha256(env.ADMIN_PASSWORD));
-  if (!ok) {
-    await new Promise((r) => setTimeout(r, 800)); // slow down password guessing
-    return json({ error: "Wrong password." }, 401);
+  // Compare hashes so the check takes the same time whatever was typed, and
+  // check both before answering so the reply doesn't reveal which was wrong.
+  const emailOk = safeEqual(await sha256(email), await sha256(env.ADMIN_EMAIL.trim().toLowerCase()));
+  const passwordOk = safeEqual(await sha256(password), await sha256(env.ADMIN_PASSWORD));
+  if (!(emailOk && passwordOk)) {
+    await new Promise((r) => setTimeout(r, 800)); // slow down guessing
+    return json({ error: "Wrong email or password." }, 401);
   }
   const token = await signSession(env, Date.now() + SESSION_HOURS * 3600 * 1000);
   return json({ ok: true, shopUrl: env.SHOP_URL || "" }, 200, { "Set-Cookie": cookie(token, SESSION_HOURS * 3600, url) });

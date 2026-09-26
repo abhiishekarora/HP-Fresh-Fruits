@@ -44,7 +44,8 @@
     const err = $("[data-login-error]");
     err.textContent = message || "";
     err.hidden = !message;
-    $('[name="password"]').focus();
+    const email = $('[name="email"]');
+    (email.value ? $('[name="password"]') : email).focus();
   }
 
   async function showApp() {
@@ -373,7 +374,7 @@
     const btn = e.target.querySelector("button");
     btn.disabled = true;
     try {
-      const data = await sendJson("login", "POST", { password: e.target.elements.password.value });
+      const data = await sendJson("login", "POST", { email: e.target.elements.email.value, password: e.target.elements.password.value });
       state.shopUrl = data.shopUrl || "";
       e.target.reset();
       await showApp();

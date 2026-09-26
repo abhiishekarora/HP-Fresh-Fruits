@@ -27,7 +27,7 @@ admin/                    the admin panel, completely separate             → a
 - The **website backend** owns the data. It serves the public catalogue to the website and
   a private API that only the admin backend can use. Until the first save from the admin
   panel, the catalogue comes from the bundled `data/*.json`.
-- The **admin backend** stores nothing. It handles the admin password login and forwards
+- The **admin backend** stores nothing. It handles the admin email and password sign-in and forwards
   every read and change to the website backend's private API.
 - Nothing from `admin/` or `backend/` is published on the customer website (see
   `.assetsignore`).
@@ -68,14 +68,15 @@ because the admin backend connects to it by name.
 
    | Name | Type | Value |
    |---|---|---|
-   | `ADMIN_PASSWORD` | Secret | the password you'll log in with (make it long) |
+   | `ADMIN_EMAIL` | Secret | the email you'll sign in with |
+   | `ADMIN_PASSWORD` | Secret | the password you'll sign in with (make it long) |
    | `SESSION_SECRET` | Secret | another long random value |
    | `INTERNAL_API_KEY` | Secret | **exactly the same** value as on `hp-fresh-fruits` |
    | `SHOP_URL` | Text | the shop's address, e.g. `https://yourdomain.com` (for the "View shop" link) |
 
    Redeploy.
 4. **Settings → Domains & Routes → Add → Custom domain**: `admin.yourdomain.com`.
-5. Open the admin address and log in with `ADMIN_PASSWORD`.
+5. Open the admin address and sign in with `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
 
 **Recommended extra protection:** put the admin subdomain behind **Cloudflare Access**
 (Zero Trust → Access → Applications → Add → Self-hosted, domain `admin.yourdomain.com`,

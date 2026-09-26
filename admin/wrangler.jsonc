@@ -13,7 +13,7 @@
   // Calls the customer site's backend (hp-fresh-fruits) directly inside Cloudflare.
   "services": [{ "binding": "SHOP_API", "service": "hp-fresh-fruits" }],
   // Set in the dashboard and kept between deploys:
-  //   ADMIN_PASSWORD, SESSION_SECRET, INTERNAL_API_KEY (secrets)
+  //   ADMIN_EMAIL, ADMIN_PASSWORD, SESSION_SECRET, INTERNAL_API_KEY (secrets)
   //   SHOP_URL (optional text, the shop's address for the "Open customer site" link)
   "keep_vars": true,
   "observability": { "enabled": true }
