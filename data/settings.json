@@ -1,9 +1,10 @@
 {
   "brand": {
     "name": "HP Fresh Fruits",
-    "tagline": "Exotic fruits, imported fresh from around the world",
+    "tagline": "Premium imported fruits, handpicked from the world's finest growing regions",
     "email": "orders@example.com",
-    "phone": "+91 00000 00000"
+    "phone": "+91 89800 08930",
+    "address": "1041, Silver Business Point, Utran, Surat"
   },
   "hero": {
     "eyebrow": "Imported · Hand-picked · Delivered fresh",

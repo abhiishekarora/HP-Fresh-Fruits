@@ -129,7 +129,7 @@
           </td>
           <td>${escapeHtml(p.category || "")}</td>
           <td>${escapeHtml(p.origin || "")}</td>
-          <td class="num">${money(p.price)}</td>
+          <td class="num">${p.price === null || p.price === "" ? '<span class="muted">On request</span>' : money(p.price)}</td>
           <td>
             <div class="badges">
               <span class="badge stock-${escapeHtml(p.stock || "in_stock")}">${STOCK_LABELS[p.stock] || "In stock"}</span>
@@ -246,13 +246,13 @@
     const v = (name) => form.elements[name].value.trim();
     const name = v("name");
     const id = slug(v("id") || name);
-    const price = Number(v("price"));
+    const price = v("price") === "" ? null : Number(v("price"));
     const clash = state.products.findIndex((p, i) => p.id === id && i !== state.editing);
     let problem = "";
     if (!name) problem = "Please enter a name.";
     else if (!id) problem = "Please enter a product code.";
     else if (clash >= 0) problem = `Another product already uses the code "${id}".`;
-    else if (!Number.isFinite(price) || price < 0 || v("price") === "") problem = "Please enter a valid price.";
+    else if (price !== null && (!Number.isFinite(price) || price < 0)) problem = "Please enter a valid price, or leave it empty for 'Price on request'.";
     if (problem) {
       err.textContent = problem;
       err.hidden = false;

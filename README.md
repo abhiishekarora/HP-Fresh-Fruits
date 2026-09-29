@@ -137,12 +137,16 @@ Put local secrets in `.dev.vars` (root) and `admin/.dev.vars` (one `NAME=value` 
 these files are git-ignored), then open http://localhost:8787 (website) and
 http://localhost:8788 (admin).
 
-## Photos
-Some bundled product photos come from Wikimedia Commons under their free licences
-(mostly Creative Commons Attribution-ShareAlike). The shop footer's "Photo credits"
-list links each photo's source page, which names the photographer and licence.
-If a photo can't load, the product falls back to its illustration or emoji.
+## Products and photos
+The bundled catalogue (`data/products.json`, photos in `images/catalog/`) comes from the
+HP Fresh catalogue: 30 fruits, each listed once per origin country (58 products).
+Prices aren't in the catalogue, so products show **Price on request** until a price is
+set in the admin panel. Items without a price are listed as "price on request" in the
+WhatsApp order and left out of the subtotal.
+
+Once anything is saved in the admin panel, the shop uses the saved catalogue instead of
+the bundled file.
 
 ## License
-Proprietary (excluding third-party photos, which keep their own licences). Copyright (c) 2026 HP Fresh Fruits. All rights reserved.
+Proprietary. Copyright (c) 2026 HP Fresh Fruits. All rights reserved.
 No use, copying or distribution without written permission. See [LICENSE](LICENSE).

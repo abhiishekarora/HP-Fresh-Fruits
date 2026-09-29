@@ -47,7 +47,8 @@
     return {
       ...p,
       id: String(p.id || p.name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      price: Number(p.price) || 0,
+      // No price means "price on request": shown as such and left out of totals.
+      price: p.price === null || p.price === "" || p.price === undefined || !Number.isFinite(Number(p.price)) ? null : Number(p.price),
       emoji: p.emoji || "🧺",
       image: p.illustration || "",
       tint: p.tint || "#f6f8ef",
@@ -67,7 +68,7 @@
   const CART_KEY = "fruit-shop-cart";
 
   const FLAGS = {
-    "Argentina": "🇦🇷", "Australia": "🇦🇺", "Belgium": "🇧🇪", "Bhutan": "🇧🇹", "Brazil": "🇧🇷",
+    "Afghanistan": "🇦🇫", "Argentina": "🇦🇷", "Australia": "🇦🇺", "Belgium": "🇧🇪", "Bhutan": "🇧🇹", "Brazil": "🇧🇷",
     "Canada": "🇨🇦", "Chile": "🇨🇱", "China": "🇨🇳", "Colombia": "🇨🇴", "Costa Rica": "🇨🇷",
     "Ecuador": "🇪🇨", "Egypt": "🇪🇬", "France": "🇫🇷", "Greece": "🇬🇷", "India": "🇮🇳",
     "Indonesia": "🇮🇩", "Iran": "🇮🇷", "Israel": "🇮🇱", "Italy": "🇮🇹", "Japan": "🇯🇵",
@@ -76,6 +77,7 @@
     "Philippines": "🇵🇭", "Poland": "🇵🇱", "Portugal": "🇵🇹", "South Africa": "🇿🇦",
     "South Korea": "🇰🇷", "Spain": "🇪🇸", "Sri Lanka": "🇱🇰", "Taiwan": "🇹🇼", "Thailand": "🇹🇭",
     "Turkey": "🇹🇷", "UAE": "🇦🇪", "UK": "🇬🇧", "USA": "🇺🇸", "Vietnam": "🇻🇳",
+    "Russia": "🇷🇺", "Serbia": "🇷🇸", "Tanzania": "🇹🇿",
   };
 
   const money = new Intl.NumberFormat(config.currency.locale, {
@@ -103,6 +105,10 @@
     $$("[data-brand-phone]").forEach((el) => {
       el.textContent = brand.phone;
       el.href = "tel:" + brand.phone.replace(/\s+/g, "");
+    });
+    $$("[data-brand-address]").forEach((el) => {
+      el.textContent = brand.address || "";
+      el.hidden = !brand.address;
     });
     $$("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
     const hero = config.hero || {};
@@ -167,7 +173,15 @@
 
   const cartItemCount = () => Object.values(cart).reduce((a, b) => a + b, 0);
   const cartSubtotal = () =>
-    Object.entries(cart).reduce((sum, [id, qty]) => sum + productById.get(id).price * qty, 0);
+    Object.entries(cart).reduce((sum, [id, qty]) => sum + (productById.get(id).price || 0) * qty, 0);
+  const cartHasUnpriced = () => Object.keys(cart).some((id) => productById.get(id).price === null);
+  const cartHasPriced = () => Object.keys(cart).some((id) => productById.get(id).price !== null);
+  function subtotalText() {
+    if (!cartHasPriced()) return "Price on request";
+    return money.format(cartSubtotal()) + (cartHasUnpriced() ? " + items on request" : "");
+  }
+  const unitText = (p) => (p.unit ? ` / ${p.unit}` : "");
+  const priceText = (p) => (p.price === null ? "Price on request" : money.format(p.price) + unitText(p));
 
   /* ---------- Product grid ---------- */
 
@@ -211,8 +225,11 @@
         <div class="product-info">
           <p class="product-category">${escapeHtml(p.category)}</p>
           <h3>${escapeHtml(p.name)}</h3>
+          ${p.origin ? `<p class="product-origin">${FLAGS[p.origin] || "🌍"} Imported from <strong>${escapeHtml(p.origin)}</strong></p>` : ""}
           <p class="product-desc">${escapeHtml(p.description)}</p>
-          <p class="product-price">${money.format(p.price)} <span>/ ${escapeHtml(p.unit)}</span></p>
+          ${p.price === null
+            ? `<p class="product-price on-request">Price on request${p.unit ? ` <span>/ ${escapeHtml(p.unit)}</span>` : ""}</p>`
+            : `<p class="product-price">${money.format(p.price)}${p.unit ? ` <span>/ ${escapeHtml(p.unit)}</span>` : ""}</p>`}
         </div>
         <div class="product-action" data-action></div>
       </article>`;
@@ -295,7 +312,7 @@
             <span class="cart-thumb" style="background:${escapeHtml(p.tint)}" aria-hidden="true">${mediaHtml(p, "")}</span>
             <div class="cart-item-info">
               <p class="cart-item-name">${escapeHtml(p.name)}</p>
-              <p class="muted small">${FLAGS[p.origin] || ""} ${escapeHtml(p.origin)} · ${money.format(p.price)} / ${escapeHtml(p.unit)}</p>
+              <p class="muted small">${FLAGS[p.origin] || ""} ${escapeHtml(p.origin)}${p.price === null ? "" : " · " + escapeHtml(priceText(p))}</p>
               <div class="qty-control qty-sm" role="group" aria-label="Quantity for ${escapeHtml(p.name)}">
                 <button type="button" data-dec="${id}" aria-label="Decrease quantity">−</button>
                 <span>${qty}</span>
@@ -303,7 +320,7 @@
               </div>
             </div>
             <div class="cart-item-end">
-              <strong>${money.format(p.price * qty)}</strong>
+              <strong>${p.price === null ? "On request" : money.format(p.price * qty)}</strong>
               <button type="button" class="btn-link small" data-remove="${id}">Remove</button>
             </div>
           </li>`;
@@ -316,7 +333,7 @@
     $("[data-cart-foot]").hidden = empty || success;
     if (empty) $("[data-checkout]").hidden = true;
 
-    $("[data-cart-subtotal]").textContent = money.format(cartSubtotal());
+    $("[data-cart-subtotal]").textContent = subtotalText();
     const shortfall = moqShortfall();
     $("[data-moq-cart]").textContent = shortfall || moqMessage();
     $("[data-checkout-btn]").disabled = !!shortfall;
@@ -412,10 +429,11 @@
       "",
       ...Object.entries(cart).map(([id, qty]) => {
         const p = productById.get(id);
-        return `• ${p.name} (${p.unit}) × ${qty} = ${money.format(p.price * qty)}`;
+        const what = `${p.name} from ${p.origin}${p.unit ? ` (${p.unit})` : ""}`;
+        return `• ${what} × ${qty} = ${p.price === null ? "price on request" : money.format(p.price * qty)}`;
       }),
       "",
-      `*Subtotal: ${money.format(cartSubtotal())}*`,
+      cartHasPriced() ? `*Subtotal: ${subtotalText()}*` : "*Prices: please confirm*",
       "Delivery charges to be confirmed.",
       "",
       `Name: ${customer.name}`,

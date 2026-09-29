@@ -143,8 +143,10 @@ function cleanProducts(list) {
     if (!id) return { error: `"${name}" needs a product code.` };
     if (seen.has(id)) return { error: `Two products use the code "${id}". Codes must be unique.` };
     seen.add(id);
+    // An empty price means "price on request".
+    const onRequest = p.price === null || p.price === undefined || p.price === "";
     const price = Number(p.price);
-    if (!Number.isFinite(price) || price < 0 || price > 10000000) return { error: `"${name}" has an invalid price.` };
+    if (!onRequest && (!Number.isFinite(price) || price < 0 || price > 10000000)) return { error: `"${name}" has an invalid price.` };
     products.push({
       id,
       name,
@@ -153,7 +155,7 @@ function cleanProducts(list) {
       featured: p.featured === true,
       category: text(p.category, 40) || "Other",
       origin: text(p.origin, 60),
-      price: Math.round(price * 100) / 100,
+      price: onRequest ? null : Math.round(price * 100) / 100,
       unit: text(p.unit, 40),
       description: text(p.description, 600),
       photo: photoPath(p.photo),
@@ -172,7 +174,7 @@ function cleanSettings(s) {
   const b = s.brand || {}, h = s.hero || {}, o = s.orders || {}, m = s.minOrder || {}, c = s.currency || {};
   const moq = parseInt(m.value, 10);
   const settings = {
-    brand: { name: text(b.name, 80) || "Fruit Shop", tagline: text(b.tagline, 160), email: text(b.email, 120), phone: text(b.phone, 40) },
+    brand: { name: text(b.name, 80) || "Fruit Shop", tagline: text(b.tagline, 160), email: text(b.email, 120), phone: text(b.phone, 40), address: text(b.address, 200) },
     hero: { eyebrow: text(h.eyebrow, 120), title: text(h.title, 120), titleHighlight: text(h.titleHighlight, 120) },
     orders: { whatsappNumber: String(o.whatsappNumber || "").replace(/\D/g, "").slice(0, 15), deliveryNote: text(o.deliveryNote, 200) },
     minOrder: { value: moq > 0 ? moq : null, unit: m.unit === "amount" ? "amount" : "items", pendingMessage: text(m.pendingMessage, 200) },
