@@ -294,6 +294,47 @@ p { margin: 0 0 .5em; }
 .cart-foot .moq-note { text-align: center; }
 .cart-total { display: flex; justify-content: space-between; font-size: 1.1rem; }
 
+/* ---------- Account ---------- */
+.account-toggle {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 180px;
+  padding: .55em 1em; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink); font: 600 .95rem var(--font-body); cursor: pointer;
+}
+.account-toggle:hover { border-color: var(--primary); }
+.account-toggle span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.checkout-account { margin: -4px 0 0; padding: 8px 12px; border-radius: 10px; background: var(--primary-soft); }
+.checkout-account .btn-link { padding: 0; color: var(--primary); font-weight: 600; }
+
+.auth-dialog {
+  width: min(440px, calc(100% - 32px)); max-height: calc(100vh - 32px); padding: 0;
+  border: 0; border-radius: var(--radius); background: var(--surface); color: var(--ink);
+  box-shadow: 0 24px 60px rgba(38, 51, 42, .25);
+}
+.auth-dialog::backdrop { background: rgba(38, 51, 42, .35); }
+.auth-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+.auth-head h2 { font-size: 1.4rem; margin: 0; }
+.auth-body { padding: 18px 20px 22px; display: grid; gap: 12px; }
+.auth-note { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); color: #9a5a17; font-size: .9rem; }
+.auth-form { display: grid; gap: 12px; }
+.auth-form label { display: grid; gap: 4px; font-size: .88rem; font-weight: 500; }
+.auth-form input {
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+  font: inherit; color: var(--ink); background: var(--bg);
+}
+.auth-form input:focus { outline: none; border-color: var(--primary); }
+.auth-links { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; color: var(--muted); }
+.auth-links .btn-link { padding: 0; color: var(--primary); }
+.auth-account { display: grid; gap: 12px; }
+.auth-account h3 { font-size: 1.1rem; margin: 6px 0 0; }
+.account-details { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: .92rem; }
+.account-details dt { color: var(--muted); }
+.account-details dd { margin: 0; overflow-wrap: anywhere; }
+.account-orders { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-height: 320px; overflow-y: auto; }
+.account-orders li { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: .9rem; }
+.account-order-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: 600; }
+.order-status { padding: .1em .6em; border-radius: 999px; background: var(--primary-soft); color: var(--primary); font-size: .8rem; }
+.order-status.status-cancelled { background: #fbe9e7; color: var(--danger); }
+
 /* ---------- Toast ---------- */
 .toast {
   position: fixed; left: 50%; bottom: 24px; z-index: 60;
@@ -306,7 +347,7 @@ p { margin: 0 0 .5em; }
 /* ---------- Responsive ---------- */
 @media (max-width: 860px) {
   .main-nav { display: none; }
-  .cart-toggle { margin-left: auto; }
+  .account-toggle, .account-toggle[hidden] + .cart-toggle { margin-left: auto; }
   .hero { padding: 48px 0 56px; }
   .hero-inner { grid-template-columns: 1fr; }
   .carousel { max-width: 300px; margin-top: 8px; }
@@ -315,4 +356,6 @@ p { margin: 0 0 .5em; }
   .filters, .filters label, .filters input, .filters select { width: 100%; }
   .footer-inner { grid-template-columns: 1fr; }
   .cart-toggle span:not(.cart-count) { display: none; }
+  .account-toggle span { display: none; }
+  .header-inner { gap: 10px; }
 }

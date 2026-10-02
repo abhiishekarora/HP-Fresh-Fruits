@@ -9,9 +9,16 @@
   // Products and settings come from the shop backend (shop-api), which the
   // admin panel updates. If the backend isn't there (e.g. a static preview),
   // fall back to the catalogue bundled in data/*.json.
-  async function loadJson(path) {
-    const res = await fetch(path, { cache: "no-cache" });
-    if (!res.ok) throw new Error(path + ": " + res.status);
+  async function loadJson(path, options = {}) {
+    const res = await fetch(path, { cache: "no-cache", ...options });
+    if (!res.ok) {
+      let message = path + ": " + res.status;
+      try {
+        const data = await res.json();
+        if (data.error) message = data.error;
+      } catch {}
+      throw new Error(message);
+    }
     return res.json();
   }
 
@@ -206,7 +213,7 @@
   }
 
   function renderCredits() {
-    const items = products.filter((p) => p.photo && p.photo.source);
+    const items = products.filter((p) => p.photo && /^https:\/\//i.test(p.photo.source));
     $("[data-credits-wrap]").hidden = items.length === 0;
     $("[data-credits]").innerHTML = items
       .map((p) => `<li>${escapeHtml(p.name)}: <a href="${escapeHtml(p.photo.source)}" target="_blank" rel="noopener">${escapeHtml(p.photo.title)}</a></li>`)
@@ -442,13 +449,14 @@
     return "https://wa.me/" + number + "?text=" + encodeURIComponent(lines.join("\n"));
   }
 
-  function handleCheckout() {
+  async function handleCheckout() {
     const form = $("[data-checkout]");
     const btn = $("[data-checkout-btn]");
     const error = $("[data-form-error]");
 
     if (form.hidden) {
       form.hidden = false;
+      fillCheckoutFromAccount();
       if (!form.elements.latitude.value) requestLocation();
       btn.textContent = config.orders.whatsappNumber ? "Place order on WhatsApp" : "Place order";
       $("input", form).focus();
@@ -463,7 +471,7 @@
     }
 
     if (!form.checkValidity()) {
-      error.textContent = "Please fill in your name, phone and address.";
+      error.textContent = "Please fill in your name, a valid email, phone and address.";
       error.hidden = false;
       const firstInvalid = $$(":invalid", form)[0];
       if (firstInvalid) firstInvalid.focus();
@@ -472,23 +480,263 @@
 
     const customer = Object.fromEntries(new FormData(form));
     const waUrl = whatsappOrderUrl(customer);
-    if (waUrl) window.open(waUrl, "_blank", "noopener");
-
-    const link = $("[data-whatsapp-link]");
-    $("[data-success-whatsapp]").hidden = !waUrl;
-    $("[data-success-plain]").hidden = !!waUrl;
-    if (waUrl) link.href = waUrl;
-
+    const whatsappWindow = waUrl ? window.open("about:blank", "_blank") : null;
+    if (whatsappWindow) whatsappWindow.opener = null;
+    btn.disabled = true;
     error.hidden = true;
+    try {
+      const result = await sendOrder(customer);
+      if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.location.replace(waUrl);
+
+      const link = $("[data-whatsapp-link]");
+      $("[data-success-whatsapp]").hidden = !waUrl;
+      $("[data-success-plain]").hidden = !!waUrl;
+      if (waUrl) link.href = waUrl;
+      $("[data-order-email-note]").textContent = result.emailSent
+        ? `Order ${result.orderId.slice(-8).toUpperCase()} saved. A confirmation and future status updates were emailed to ${customer.email}.`
+        : `Order ${result.orderId.slice(-8).toUpperCase()} saved, but the email could not be sent. Please contact us to confirm your order.`;
+      // The shop remembers the latest delivery details on the account.
+      if (customer) Object.assign(customer, { phone: form.elements.phone.value.trim(), address: form.elements.address.value.trim() });
+
+      form.reset();
+      clearLocation();
+      form.hidden = true;
+      btn.textContent = "Checkout";
+      cart = {};
+      saveCart();
+      $("[data-success]").hidden = false;
+      renderCart();
+      renderProductButtons();
+    } catch (err) {
+      if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.close();
+      error.textContent = err.message || "We couldn't save your order. Please try again.";
+      error.hidden = false;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function sendOrder(customer) {
+    return loadJson("api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customer: {
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          address: customer.address,
+          latitude: customer.latitude,
+          longitude: customer.longitude,
+          locationAccuracy: customer.locationAccuracy,
+        },
+        items: Object.entries(cart).map(([id, quantity]) => ({ id, quantity: Number(quantity) })),
+      }),
+    });
+  }
+
+  /* ---------- Customer account ---------- */
+
+  // The session cookie is HttpOnly; the page only knows who is signed in
+  // from /api/account.
+  let customer = null;
+  let resetToken = "";
+  const AUTH_TITLES = {
+    login: "Sign in",
+    register: "Create your account",
+    forgot: "Reset your password",
+    reset: "Choose a new password",
+    account: "Your account",
+  };
+  const ORDER_STATUS_LABELS = {
+    received: "Order received",
+    confirmed: "Confirmed",
+    preparing: "Preparing",
+    out_for_delivery: "Out for delivery",
+    delivered: "Delivered",
+    cancelled: "Cancelled",
+  };
+
+  const postJson = (path, body) =>
+    loadJson(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+
+  async function loadAccount() {
+    try {
+      customer = (await loadJson("api/account")).customer || null;
+      $("[data-account-btn]").hidden = false;
+    } catch {
+      // No shop backend (e.g. a static preview): accounts aren't available.
+      customer = null;
+    }
+    renderAccountState();
+  }
+
+  function setCustomer(value) {
+    customer = value;
+    renderAccountState();
+  }
+
+  function renderAccountState() {
+    const first = customer ? customer.name.split(/\s+/)[0] : "";
+    $("[data-account-label]").textContent = customer ? first || "Account" : "Sign in";
+    $("[data-account-btn]").setAttribute("aria-label", customer ? "Your account" : "Sign in or create an account");
+
+    const note = $("[data-checkout-account]");
+    note.hidden = $("[data-account-btn]").hidden;
+    note.innerHTML = customer
+      ? `Signed in as <strong>${escapeHtml(customer.email)}</strong>. This order will appear in your account.`
+      : `<button class="btn-link" type="button" data-auth-open="login">Sign in</button> or <button class="btn-link" type="button" data-auth-open="register">create an account</button> to fill in your details and follow your orders.`;
+    fillCheckoutFromAccount();
+  }
+
+  // Fill empty delivery fields from the account; never overwrite typing.
+  function fillCheckoutFromAccount() {
+    if (!customer) return;
+    const form = $("[data-checkout]");
+    for (const name of ["name", "email", "phone", "address"]) {
+      if (!form.elements[name].value && customer[name]) form.elements[name].value = customer[name];
+    }
+  }
+
+  function showAuth(view, note) {
+    const dialog = $("[data-auth]");
+    $("[data-auth-title]").textContent = AUTH_TITLES[view];
+    $$("[data-auth-form]", dialog).forEach((el) => {
+      el.hidden = el.dataset.authForm !== view;
+      const error = $("[data-auth-error]", el);
+      if (error) error.hidden = true;
+    });
+    const noteEl = $("[data-auth-note]");
+    noteEl.textContent = note || "";
+    noteEl.hidden = !note;
+    if (view === "account") renderAccount();
+    if (!dialog.open) dialog.showModal();
+    const first = $(`[data-auth-form="${view}"] input`, dialog);
+    if (first) first.focus();
+  }
+
+  function closeAuth() {
+    $("[data-auth]").close();
+  }
+
+  async function renderAccount() {
+    if (!customer) return;
+    const rows = [["Name", customer.name], ["Email", customer.email], ["Phone", customer.phone], ["Delivery address", customer.address]]
+      .filter(([, value]) => value);
+    $("[data-account-details]").innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>`).join("");
+
+    const status = $("[data-account-orders-status]");
+    const list = $("[data-account-orders]");
+    status.textContent = "Loading your orders…";
+    list.innerHTML = "";
+    try {
+      const { orders } = await loadJson("api/account/orders");
+      status.textContent = orders.length ? "" : "You haven't placed any orders while signed in yet.";
+      list.innerHTML = orders.map((order) => {
+        const date = new Date(order.createdAt);
+        const items = order.items.map((i) => `${i.quantity} × ${escapeHtml(i.name)}`).join(", ");
+        let total = "Price on request";
+        if (order.subtotal || !order.hasUnpricedItems) {
+          try {
+            total = new Intl.NumberFormat(order.currency.locale, { style: "currency", currency: order.currency.code }).format(order.subtotal);
+          } catch {
+            total = String(order.subtotal);
+          }
+          if (order.hasUnpricedItems) total += " + items on request";
+        }
+        return `<li>
+          <div class="account-order-head">
+            <span>Order ${escapeHtml(order.id.slice(-8).toUpperCase())}</span>
+            <span class="order-status status-${escapeHtml(order.status)}">${escapeHtml(ORDER_STATUS_LABELS[order.status] || order.status)}</span>
+          </div>
+          <p class="muted small">${Number.isNaN(date.getTime()) ? "" : escapeHtml(date.toLocaleString())} · ${escapeHtml(total)}</p>
+          <p class="small">${items}</p>
+        </li>`;
+      }).join("");
+    } catch (err) {
+      if (/sign in/i.test(err.message)) {
+        setCustomer(null);
+        showAuth("login", "Your session has ended. Please sign in again.");
+      } else {
+        status.textContent = "We couldn't load your orders. Please try again.";
+      }
+    }
+  }
+
+  async function submitAuth(form) {
+    const view = form.dataset.authForm;
+    const error = $("[data-auth-error]", form);
+    const button = $('button[type="submit"]', form);
+    const values = Object.fromEntries(new FormData(form));
+    error.hidden = true;
+    if (!form.checkValidity()) {
+      error.textContent = view === "register" ? "Please enter your name, a valid email and a password of at least 8 characters."
+        : view === "reset" ? "Use a password of at least 8 characters."
+        : "Please fill in the fields above.";
+      error.hidden = false;
+      const firstInvalid = $(":invalid", form);
+      if (firstInvalid) firstInvalid.focus();
+      return;
+    }
+    button.disabled = true;
+    try {
+      if (view === "forgot") {
+        const result = await postJson("api/auth/forgot", { email: values.email });
+        form.reset();
+        showAuth("login", result.message);
+        return;
+      }
+      const path = view === "reset" ? "api/auth/reset" : "api/auth/" + view;
+      const result = await postJson(path, view === "reset" ? { token: resetToken, password: values.password } : values);
+      resetToken = "";
+      form.reset();
+      setCustomer(result.customer);
+      closeAuth();
+      toast(view === "register" ? "Welcome, " + result.customer.name + "! Your account is ready." : view === "reset" ? "Password changed. You're signed in." : "Signed in.");
+    } catch (err) {
+      error.textContent = err.message || "Something went wrong. Please try again.";
+      error.hidden = false;
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  async function signOut() {
+    try {
+      await postJson("api/auth/logout", {});
+    } catch {}
+    setCustomer(null);
+    const form = $("[data-checkout]");
     form.reset();
     clearLocation();
-    form.hidden = true;
-    btn.textContent = "Checkout";
-    cart = {};
-    saveCart();
-    $("[data-success]").hidden = false;
-    renderCart();
-    renderProductButtons();
+    closeAuth();
+    toast("Signed out.");
+  }
+
+  function bindAccountEvents() {
+    const dialog = $("[data-auth]");
+    $("[data-account-btn]").addEventListener("click", () => showAuth(customer ? "account" : "login"));
+    // Links that switch views live in the dialog and in the checkout form.
+    document.addEventListener("click", (e) => {
+      const open = e.target.closest("[data-auth-open]");
+      if (open) showAuth(open.dataset.authOpen);
+    });
+    $("[data-auth-close]").addEventListener("click", closeAuth);
+    // Clicking the dimmed backdrop closes the dialog.
+    dialog.addEventListener("click", (e) => { if (e.target === dialog) closeAuth(); });
+    $$("form[data-auth-form]", dialog).forEach((form) => form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      submitAuth(form);
+    }));
+    $("[data-auth-logout]").addEventListener("click", signOut);
+
+    // Password reset links look like /#reset=<token>.
+    const match = /^#reset=([A-Za-z0-9_-]{32})$/.exec(location.hash);
+    if (match) {
+      resetToken = match[1];
+      history.replaceState(null, "", location.pathname + location.search);
+      showAuth("reset");
+    }
   }
 
   /* ---------- Toast ---------- */
@@ -547,7 +795,7 @@
 
     $("[data-overlay]").addEventListener("click", closeCart);
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && $("#cart").classList.contains("open")) closeCart();
+      if (e.key === "Escape" && $("#cart").classList.contains("open") && !$("[data-auth]").open) closeCart();
     });
 
     $("[data-search]").addEventListener("input", (e) => {
@@ -643,4 +891,6 @@
   initCarousel();
   renderCart();
   bindEvents();
+  bindAccountEvents();
+  loadAccount();
 })();

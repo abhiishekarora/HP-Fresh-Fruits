@@ -1,5 +1,9 @@
 # The admin panel is for the shop owner only.
 /*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'
+  Strict-Transport-Security: max-age=31536000
   X-Robots-Tag: noindex, nofollow
   X-Frame-Options: DENY
-  Referrer-Policy: same-origin
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

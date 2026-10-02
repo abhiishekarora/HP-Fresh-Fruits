@@ -56,6 +56,14 @@
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 7l8-4 8 4v10l-8 4-8-4zM4 7l8 4 8-4M12 11v10"/></svg>
           Products
         </button>
+        <button type="button" role="tab" class="nav-item" data-tab="orders" aria-selected="false">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg>
+          Orders
+        </button>
+        <button type="button" role="tab" class="nav-item" data-tab="reports" aria-selected="false">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 20h16M7 16v-5M12 16V6M17 16v-8"/></svg>
+          Reports
+        </button>
         <button type="button" role="tab" class="nav-item" data-tab="settings" aria-selected="false">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
           Settings
@@ -120,6 +128,66 @@
         </table>
       </div>
       <p class="empty" data-product-empty hidden>No products match.</p>
+    </section>
+
+    <!-- Orders -->
+    <section class="page" data-page="orders" hidden>
+      <div class="page-head">
+        <div>
+          <h2>Orders</h2>
+          <p class="muted" data-order-sync role="status">Loading orders...</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-ghost" type="button" data-order-refresh title="Refresh orders">Refresh</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table order-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Placed</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th class="num">Subtotal</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody data-order-list></tbody>
+        </table>
+      </div>
+      <p class="empty" data-order-empty hidden>No orders yet.</p>
+    </section>
+
+    <!-- Reports -->
+    <section class="page" data-page="reports" hidden>
+      <div class="page-head">
+        <div>
+          <h2>Reports</h2>
+          <p class="muted">Download a month's sales and store data as an Excel workbook.</p>
+        </div>
+      </div>
+      <form class="card report-card" data-report-form>
+        <div class="report-controls">
+          <label>Month <input type="month" name="month" required data-report-month></label>
+          <button class="btn btn-primary" type="submit" data-report-download>Download Excel report</button>
+        </div>
+        <small data-report-zone></small>
+        <div class="report-sheets">
+          <p class="report-sheets-title">The workbook has these sheets:</p>
+          <dl class="setup">
+            <dt>Summary</dt><dd>Orders, sales, average order value, units sold, orders by status, new accounts</dd>
+            <dt>Orders</dt><dd>Every order with customer, delivery details, status and subtotal</dd>
+            <dt>Order lines</dt><dd>One row per product in each order, with quantities and prices</dd>
+            <dt>Product sales</dt><dd>Units, orders and sales per product, best sellers first</dd>
+            <dt>Daily sales</dt><dd>Orders, cancellations, units and sales for every day of the month</dd>
+            <dt>Customers</dt><dd>Who ordered, how often and how much</dd>
+            <dt>New accounts</dt><dd>Customers who registered on the website that month</dd>
+            <dt>Catalogue</dt><dd>Current products, prices and stock</dd>
+          </dl>
+          <small>Sales figures leave out cancelled orders. The report contains customer contact details; store and share it carefully.</small>
+        </div>
+      </form>
     </section>
 
     <!-- Settings -->

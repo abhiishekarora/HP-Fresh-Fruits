@@ -23,6 +23,10 @@
         <a href="#how">How it works</a>
         <a href="#contact">Contact</a>
       </nav>
+      <button class="account-toggle" type="button" data-account-btn hidden>
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>
+        <span data-account-label>Sign in</span>
+      </button>
       <button class="cart-toggle" type="button" aria-controls="cart" aria-expanded="false">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6.2"/><circle cx="10" cy="20" r="1.4" fill="currentColor"/><circle cx="17" cy="20" r="1.4" fill="currentColor"/></svg>
         <span>Cart</span>
@@ -135,7 +139,9 @@
 
       <form class="checkout" data-checkout hidden novalidate>
         <h3>Delivery details</h3>
+        <p class="checkout-account small" data-checkout-account hidden></p>
         <label>Full name<input name="name" required autocomplete="name"></label>
+        <label>Email for order updates<input name="email" type="email" required maxlength="254" autocomplete="email"><small>We’ll email your confirmation and status changes.</small></label>
         <label>Phone<input name="phone" type="tel" required autocomplete="tel"></label>
         <label>Address<textarea name="address" rows="3" required autocomplete="street-address"></textarea></label>
         <div class="location" data-location>
@@ -153,9 +159,10 @@
 
       <div class="order-success" data-success hidden>
         <p class="cart-empty-emoji" aria-hidden="true">✅</p>
+        <p data-order-email-note role="status"></p>
         <div data-success-whatsapp hidden>
           <h3>Almost done!</h3>
-          <p>Your order is ready in WhatsApp. <strong>Press send</strong> there to place it, and we'll confirm availability and your delivery slot.</p>
+          <p>Your order is saved. <strong>Press send</strong> in WhatsApp so we can confirm availability and your delivery slot.</p>
           <p><a class="btn btn-whatsapp" data-whatsapp-link href="#" target="_blank" rel="noopener">Open WhatsApp again</a></p>
         </div>
         <div data-success-plain>
@@ -177,6 +184,60 @@
       <button class="btn btn-link" type="button" data-clear-cart>Clear cart</button>
     </div>
   </aside>
+
+  <!-- Account: sign in, register, password reset, order history -->
+  <dialog class="auth-dialog" data-auth aria-labelledby="auth-title">
+    <div class="auth-head">
+      <h2 id="auth-title" data-auth-title>Sign in</h2>
+      <button class="icon-btn" type="button" data-auth-close aria-label="Close">✕</button>
+    </div>
+    <div class="auth-body">
+      <p class="auth-note" data-auth-note hidden></p>
+
+      <form class="auth-form" data-auth-form="login" novalidate>
+        <label>Email<input name="email" type="email" required maxlength="254" autocomplete="username"></label>
+        <label>Password<input name="password" type="password" required autocomplete="current-password"></label>
+        <p class="form-error" data-auth-error hidden></p>
+        <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+        <p class="auth-links small">
+          <button class="btn-link" type="button" data-auth-open="forgot">Forgot password?</button>
+          <span>New here? <button class="btn-link" type="button" data-auth-open="register">Create an account</button></span>
+        </p>
+      </form>
+
+      <form class="auth-form" data-auth-form="register" novalidate hidden>
+        <label>Full name<input name="name" required maxlength="100" autocomplete="name"></label>
+        <label>Email<input name="email" type="email" required maxlength="254" autocomplete="email"></label>
+        <label>Phone <span class="muted">(optional)</span><input name="phone" type="tel" maxlength="40" autocomplete="tel"></label>
+        <label>Password<input name="password" type="password" required minlength="8" maxlength="200" autocomplete="new-password"><small class="muted">At least 8 characters.</small></label>
+        <p class="form-error" data-auth-error hidden></p>
+        <button class="btn btn-primary btn-block" type="submit">Create account</button>
+        <p class="auth-links small"><span>Already have an account? <button class="btn-link" type="button" data-auth-open="login">Sign in</button></span></p>
+      </form>
+
+      <form class="auth-form" data-auth-form="forgot" novalidate hidden>
+        <p class="muted small">Enter your account's email and we'll send you a link to choose a new password.</p>
+        <label>Email<input name="email" type="email" required maxlength="254" autocomplete="email"></label>
+        <p class="form-error" data-auth-error hidden></p>
+        <button class="btn btn-primary btn-block" type="submit">Email me a reset link</button>
+        <p class="auth-links small"><button class="btn-link" type="button" data-auth-open="login">Back to sign in</button></p>
+      </form>
+
+      <form class="auth-form" data-auth-form="reset" novalidate hidden>
+        <label>New password<input name="password" type="password" required minlength="8" maxlength="200" autocomplete="new-password"><small class="muted">At least 8 characters. You'll be signed out on other devices.</small></label>
+        <p class="form-error" data-auth-error hidden></p>
+        <button class="btn btn-primary btn-block" type="submit">Save new password</button>
+      </form>
+
+      <div class="auth-account" data-auth-form="account" hidden>
+        <dl class="account-details" data-account-details></dl>
+        <h3>Your orders</h3>
+        <p class="muted small" data-account-orders-status role="status"></p>
+        <ul class="account-orders" data-account-orders></ul>
+        <button class="btn btn-ghost btn-block" type="button" data-auth-logout>Sign out</button>
+      </div>
+    </div>
+  </dialog>
 
   <div class="toast" data-toast role="status" aria-live="polite"></div>
 

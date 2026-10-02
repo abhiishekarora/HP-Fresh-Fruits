@@ -10,3 +10,9 @@ backend
 wrangler.jsonc
 README.md
 LICENSE
+.env
+.env.*
+.dev.vars.*
+.claude
+.vscode
+*.log

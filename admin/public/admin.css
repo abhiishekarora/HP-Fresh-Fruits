@@ -151,6 +151,18 @@ tr.is-hidden td:not(.col-actions) { opacity: .55; }
 .badge.stock-sold_out { background: var(--danger-soft); color: var(--danger); }
 .badge.featured { background: var(--gold-soft); color: var(--warn); }
 .row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.order-table { min-width: 1020px; }
+.order-customer { min-width: 190px; max-width: 270px; overflow-wrap: anywhere; }
+.order-status-control { display: grid; gap: 6px; min-width: 150px; }
+.order-status-control select { min-width: 150px; }
+
+/* Reports */
+.report-card { max-width: 760px; }
+.report-controls { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.report-controls label { width: 200px; }
+.report-sheets { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 8px; }
+.report-sheets-title { margin: 0; font-weight: 600; }
+.report-sheets .setup { margin: 0; }
 
 /* Settings */
 .settings { display: grid; gap: 16px; max-width: 760px; }

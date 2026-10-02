@@ -5,6 +5,14 @@
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   const STOCK_LABELS = { in_stock: "In stock", limited: "Limited stock", new: "New arrival", sold_out: "Sold out" };
+  const ORDER_STATUSES = {
+    received: "Order received",
+    confirmed: "Confirmed",
+    preparing: "Preparing",
+    out_for_delivery: "Out for delivery",
+    delivered: "Delivered",
+    cancelled: "Cancelled",
+  };
 
   const state = {
     products: [],
@@ -14,6 +22,8 @@
     methods: null, // which sign-in options the backend offers
     editing: -1, // index in state.products, or -1 for a new product
     draftPhoto: "",
+    orders: [],
+    orderPollTimer: null,
   };
 
   function escapeHtml(str) {
@@ -40,6 +50,8 @@
   /* ---------- Views ---------- */
 
   function showLogin(message) {
+    clearInterval(state.orderPollTimer);
+    state.orderPollTimer = null;
     $('[data-view="app"]').hidden = true;
     $('[data-view="login"]').hidden = false;
     const m = state.methods || { google: false, password: true };
@@ -74,6 +86,8 @@
       renderProducts();
       fillSettings();
       renderOverview();
+      await refreshOrders();
+      startOrderPolling();
     } catch (err) {
       if (err.message !== "Not logged in") toast(err.message, true);
     }
@@ -201,6 +215,73 @@
     $("[data-setup]").innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>`).join("");
   }
 
+  function renderOrders() {
+    const list = $("[data-order-list]");
+    list.innerHTML = state.orders.map((order) => {
+      const customer = order.customer || {};
+      const items = (order.items || []).map((item) => `${item.quantity} × ${escapeHtml(item.name)}${item.unit ? ` (${escapeHtml(item.unit)})` : ""}`).join("<br>");
+      const location = customer.location;
+      const mapLink = location ? `<a href="https://www.google.com/maps?q=${encodeURIComponent(location.latitude)},${encodeURIComponent(location.longitude)}" target="_blank" rel="noopener">Delivery map</a>` : "";
+      const currency = order.currency || {};
+      let subtotal = String(order.subtotal || 0);
+      try {
+        subtotal = new Intl.NumberFormat(currency.locale || "en-IN", { style: "currency", currency: currency.code || "INR" }).format(order.subtotal || 0);
+      } catch {}
+      return `<tr>
+        <td><strong>${escapeHtml(order.id.slice(-8).toUpperCase())}</strong><div class="cell-sub">${escapeHtml(order.id)}</div></td>
+        <td>${escapeHtml(formatOrderDate(order.createdAt))}</td>
+        <td class="order-customer"><strong>${escapeHtml(customer.name)}</strong><br><a href="mailto:${encodeURIComponent(customer.email || "")}">${escapeHtml(customer.email)}</a><br>${escapeHtml(customer.phone)}<br>${escapeHtml(customer.address)}${mapLink ? `<br>${mapLink}` : ""}</td>
+        <td>${items}</td>
+        <td class="num">${escapeHtml(subtotal)}${order.hasUnpricedItems ? '<div class="cell-sub">Some items on request</div>' : ""}</td>
+        <td><div class="order-status-control">
+          <select data-order-status="${escapeHtml(order.id)}" aria-label="Status for order ${escapeHtml(order.id)}">${Object.entries(ORDER_STATUSES).map(([value, label]) => `<option value="${value}"${order.status === value ? " selected" : ""}>${label}</option>`).join("")}</select>
+          <button class="btn btn-primary btn-sm" type="button" data-order-save="${escapeHtml(order.id)}">Save status</button>
+        </div></td>
+      </tr>`;
+    }).join("");
+    $("[data-order-empty]").hidden = state.orders.length > 0;
+  }
+
+  function formatOrderDate(value) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
+  }
+
+  async function refreshOrders() {
+    const sync = $("[data-order-sync]");
+    try {
+      const data = await api("orders");
+      state.orders = data.orders || [];
+      renderOrders();
+      sync.textContent = `Updated ${new Date().toLocaleTimeString()}. Auto-refresh every 2 minutes.`;
+    } catch (err) {
+      if (err.message !== "Not logged in") sync.textContent = "Could not load orders. Check the shop connection.";
+    }
+  }
+
+  function startOrderPolling() {
+    clearInterval(state.orderPollTimer);
+    state.orderPollTimer = setInterval(() => {
+      if (!$('[data-view="app"]').hidden && document.visibilityState !== "hidden") refreshOrders();
+    }, 120000);
+  }
+
+  async function saveOrderStatus(id, button) {
+    const select = $(`[data-order-status="${CSS.escape(id)}"]`);
+    if (!select) return;
+    button.disabled = true;
+    try {
+      const result = await sendJson(`orders/${encodeURIComponent(id)}`, "PUT", { status: select.value });
+      state.orders = state.orders.map((order) => order.id === id ? result.order : order);
+      renderOrders();
+      toast(result.emailSent === false ? "Status saved, but the customer email could not be sent." : "Order status updated.", result.emailSent === false);
+    } catch (err) {
+      toast(err.message, true);
+    } finally {
+      if (button.isConnected) button.disabled = false;
+    }
+  }
+
   function moveProduct(i, dir) {
     const j = i + dir;
     if (j < 0 || j >= state.products.length) return;
@@ -319,6 +400,52 @@
     btn.textContent = "Save changes";
   }
 
+  /* ---------- Reports ---------- */
+
+  const reportTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+
+  function initReports() {
+    const now = new Date();
+    const input = $("[data-report-month]");
+    input.max = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    input.value = input.max;
+    $("[data-report-zone]").textContent = `Months and times use your time zone (${reportTimeZone()}).`;
+  }
+
+  async function downloadReport() {
+    const month = $("[data-report-month]").value;
+    if (!/^\d{4}-\d{2}$/.test(month)) return toast("Choose a month.", true);
+    const btn = $("[data-report-download]");
+    btn.disabled = true;
+    btn.textContent = "Preparing…";
+    try {
+      const res = await fetch(`/api/reports/monthly?month=${encodeURIComponent(month)}&tz=${encodeURIComponent(reportTimeZone())}`, { credentials: "same-origin" });
+      if (res.status === 401) {
+        showLogin("Your session has ended. Please log in again.");
+        return;
+      }
+      if (!res.ok) {
+        let data = {};
+        try { data = await res.json(); } catch {}
+        throw new Error(data.error || `Could not build the report (${res.status}).`);
+      }
+      const url = URL.createObjectURL(await res.blob());
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `hp-fresh-fruits-report-${month}.xlsx`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      toast("Report downloaded.");
+    } catch (err) {
+      toast(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Download Excel report";
+    }
+  }
+
   /* ---------- Settings ---------- */
 
   function fillSettings() {
@@ -402,7 +529,20 @@
     showLogin();
   });
 
-  $$("[data-tab]").forEach((t) => t.addEventListener("click", () => selectTab(t.dataset.tab)));
+  $$("[data-tab]").forEach((t) => t.addEventListener("click", () => {
+    selectTab(t.dataset.tab);
+    if (t.dataset.tab === "orders") refreshOrders();
+  }));
+  $("[data-order-refresh]").addEventListener("click", refreshOrders);
+  $("[data-report-form]").addEventListener("submit", (e) => {
+    e.preventDefault();
+    downloadReport();
+  });
+  initReports();
+  $("[data-order-list]").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-order-save]");
+    if (button) saveOrderStatus(button.dataset.orderSave, button);
+  });
   $("[data-product-search]").addEventListener("input", renderProducts);
   $("[data-add-product]").addEventListener("click", () => openEditor(-1));
   $("[data-save-products]").addEventListener("click", saveProducts);
