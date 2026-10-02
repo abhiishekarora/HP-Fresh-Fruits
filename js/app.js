@@ -284,13 +284,6 @@
     $("[data-category-chips]").innerHTML = categories
       .map((c) => `<button type="button" class="chip" data-category="${escapeHtml(c)}" aria-pressed="${c === ""}">${escapeHtml(c || "All")}</button>`)
       .join("");
-
-    $("[data-origin-list]").innerHTML = origins
-      .map((o) => {
-        const names = products.filter((p) => p.origin === o).map((p) => p.name).join(", ");
-        return `<li><button type="button" data-origin-pick="${escapeHtml(o)}"><span class="flag">${FLAGS[o] || "🌍"}</span><strong>${escapeHtml(o)}</strong><span class="muted small">${escapeHtml(names)}</span></button></li>`;
-      })
-      .join("");
   }
 
   /* ---------- Cart drawer ---------- */
@@ -541,11 +534,6 @@
         filters.category = d.category;
         $$("[data-category]").forEach((c) => c.setAttribute("aria-pressed", String(c === t)));
         renderProducts();
-      } else if (d.originPick) {
-        filters.origin = d.originPick;
-        $("[data-origin-filter]").value = d.originPick;
-        renderProducts();
-        $("#shop").scrollIntoView({ behavior: "smooth" });
       } else if (t.classList.contains("cart-toggle")) {
         openCart();
       }

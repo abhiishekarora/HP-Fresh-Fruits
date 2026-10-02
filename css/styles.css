@@ -231,19 +231,6 @@ p { margin: 0 0 .5em; }
 .qty-sm { height: 34px; width: 120px; margin-top: 6px; font-size: .9rem; }
 .qty-sm button { width: 28px; height: 28px; font-size: 1rem; }
 
-/* ---------- Origins ---------- */
-.origin-list {
-  list-style: none; padding: 0; margin: 28px 0 0;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px;
-}
-.origin-list button {
-  width: 100%; height: 100%; text-align: left; cursor: pointer;
-  display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center;
-  padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line);
-  background: var(--surface); font: inherit; color: var(--ink);
-}
-.origin-list button:hover { border-color: var(--primary); }
-.origin-list .flag { grid-row: span 2; font-size: 1.8rem; }
 
 /* ---------- Steps ---------- */
 .steps { list-style: none; padding: 0; margin: 28px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; }
